@@ -27,7 +27,7 @@ const LAYER_PANE = { territorio: 'pane-territorio', audiencia: 'pane-audiencia',
 Object.values(LAYER_PANE).forEach((name, i) => { map.createPane(name).style.zIndex = 410 + i * 5; });
 // Capa de puntos: el ícono depende del campo "tipoid" de cada punto.
 const POINT_TYPES = {
-  capital: { label: 'Capital',           color: '#d4a017', glyph: '<polygon points="12,3 14.6,9 21,9.5 16,13.8 17.6,20 12,16.6 6.4,20 8,13.8 3,9.5 9.4,9"/>' },
+  capital: { label: 'Capital',           color: '#d4a017', glyph: '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/>' },
   ciudad:  { label: 'Ciudad / pueblo',            color: '#1f2a30', glyph: '<path d="M3 11 12 3l9 8v10H3z"/>' },
   mineria: { label: 'Asentamiento Minero',  color: '#7b4fa3', glyph: '<path d="M4 10c4-6 12-6 16 0" fill="none" stroke-width="2.4"/><path d="M12 6v15" fill="none" stroke-width="2.4"/>' },
   otro:    { label: 'Otro',              color: '#6f716b', glyph: '<circle cx="12" cy="12" r="4"/>' }
@@ -181,7 +181,22 @@ async function getRelated(table, foreignKey, id, select='*') {
   if (error) { console.warn(error); return []; }
   return data || [];
 }
-function fichaHtml(text) { return String(text || '').split(/\n{2,}/).map(t => `<p>${esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\[(\d+)\]/g,'<sup>[$1]</sup>').replace(/\n/g,'<br>')}</p>`).join(''); }
+function fichaHtml(text) {
+  // Admite párrafos, **negrita**, *cursiva* y viñetas ("* "). Las marcas de referencia [n] no se muestran.
+  const inline = (s) => esc(s).replace(/\[\d+\]/g, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/ +([.,;:])/g, '$1');
+  const html = [];
+  String(text || '').split(/\n{2,}/).forEach(block => {
+    let list = [], para = [];
+    const flushList = () => { if (list.length) html.push(`<ul>${list.map(x => `<li>${inline(x)}</li>`).join('')}</ul>`); list = []; };
+    const flushPara = () => { if (para.length) html.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; };
+    block.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      if (/^[*•-]\s+/.test(line)) { flushPara(); list.push(line.replace(/^[*•-]\s+/, '')); }
+      else { flushList(); para.push(line); }
+    });
+    flushList(); flushPara();
+  });
+  return html.join('');
+}
 async function renderDetail(feature, type) {
   const p = feature.properties || {};
   const id = featureId(p);
@@ -191,7 +206,7 @@ async function renderDetail(feature, type) {
   openDetail();
   const entity = await getEntityDetail(id, type);
   if (!entity) {
-    $('detail-content').innerHTML = `<div class="entity-id">${esc(id)}</div><h3>${esc(local?.name || featureName(p))}</h3><div class="detail-period">${esc(local?.period || 'Espacio histórico de Charcas · Siglo XVII')}</div><h4>Descripción histórica</h4>${local ? `<div class="ficha-body">${fichaHtml(local.description)}</div>` : `<p>${db ? 'Todavía no se ha publicado una ficha documental para esta entidad.' : 'Esta entidad procede de la capa geográfica. Para mostrar descripciones, personajes, acontecimientos y fuentes, conectá el proyecto con Supabase y cargá su ficha desde Administración.'}</p>`}<h4>Identificación cartográfica</h4><p>Identificador: ${esc(id)}<br>Tipo: ${TYPE_LABEL[type] || type}${p.Titulo ? `<br>Categoría: ${esc(p.Titulo)}` : ''}</p>`;
+    $('detail-content').innerHTML = `<div class="entity-id">${esc(id)}</div><h3>${esc(local?.name || featureName(p))}</h3><div class="detail-period">${esc(local?.period || 'Espacio histórico de Charcas · Siglo XVII')}</div><h4>Descripción histórica</h4>${local ? `<div class="ficha-body">${fichaHtml(local.description)}</div>` : `<p>${db ? 'Todavía no se ha publicado una ficha documental para esta entidad.' : 'Esta entidad procede de la capa geográfica. Para mostrar descripciones, personajes, acontecimientos y fuentes, conectá el proyecto con Supabase y cargá su ficha desde Administración.'}</p>`}`;
     return;
   }
   const [people, events, sources, relations] = await Promise.all([

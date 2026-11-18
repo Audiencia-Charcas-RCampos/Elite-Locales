@@ -1253,3 +1253,7 @@ footer {
 /* ---- Botón de administración en el pie ---- */
 .admin-link.footer-admin { margin: 0 0 0 4px; color: #e1b08e; font-size: 10px; padding: 0; }
 .admin-link.footer-admin:hover { text-decoration: underline; }
+
+/* ---- Viñetas dentro de las fichas ---- */
+.detail-content .ficha-body ul { margin: 0 0 12px; padding-left: 1.2em; }
+.detail-content .ficha-body li { margin: 0 0 8px; line-height: 1.6; }
