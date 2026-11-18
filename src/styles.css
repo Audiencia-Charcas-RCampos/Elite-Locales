@@ -690,8 +690,9 @@ a {
 }
 
 .about-icon {
-  flex:0 0 2.6em;
-  font-size:16px
+  flex:0 0 3.2em;
+  font-size:16px;
+  white-space:nowrap
 }
 
 .about-list a {
@@ -745,7 +746,16 @@ a {
 }
 
 .sources-section h2 {
-  font-size:45px
+  font-size:45px;
+  font-weight:700
+}
+
+/* Subtítulo liviano debajo del título de la sección */
+.sources-section .section-sub {
+  margin:10px 0 0;
+  font:400 15px/1.4 'Montserrat',var(--sans);
+  letter-spacing:.06em;
+  color:var(--muted)
 }
 
 .sources-section>p {
