@@ -1237,7 +1237,7 @@ footer {
 .leaflet-tooltip.area-label::before { display: none; }
 .area-label-audiencia,
 .area-label-gobernacion {
-  font: italic 700 17px/1.1 var(--serif);
+  font: italic 700 13px/1.1 var(--serif);
   letter-spacing: .04em;
   text-transform: uppercase;
 }
