@@ -23,7 +23,10 @@ El sitio también incluye una sección sobre el papel de la mujer en las élites
 
 ## El mapa
 
-El mapa usa [Leaflet](https://leafletjs.com/) sobre imágenes satelitales de [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9). Cada capa se puede activar o desactivar y tiene su propio control de transparencia. Al hacer clic en cualquier entidad se abre un popup y, desde allí, su ficha.
+El mapa usa [Leaflet](https://leafletjs.com/) con dos cartografías de base a elegir: imágenes satelitales de [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) y un mapa gris claro de Esri. Cada capa se puede activar o desactivar y tiene su propio control de transparencia.
+
+- **Polígonos** (territorios, Real Audiencia y Gobernación): llevan su nombre como rótulo y, al hacer clic, abren su ficha en un panel lateral.
+- **Puntos:** al hacer clic muestran solo el nombre (no tienen ficha).
 
 ### Capas
 
@@ -32,9 +35,52 @@ El mapa usa [Leaflet](https://leafletjs.com/) sobre imágenes satelitales de [Es
 | 1 | Capitales · Ciudades · Minería | Puntos | `public/data/puntos.geojson` | Ícono según `tipoid` |
 | 2 | Real Audiencia | Polígono | `public/data/real_audiencia.geojson` | Azul |
 | 3 | Gobernación del Tucumán | Polígono | `public/data/tucuman.geojson` | Verde |
-| 4 | Distribución territorial | Polígonos | `public/data/territorios.geojson` | Gama de rojos |
+| 4 | Distribución territorial | Polígonos | `public/data/territorios.geojson` | Un color por territorio |
 
 La capa de puntos es opcional: si `puntos.geojson` no existe, el resto del mapa funciona igual.
+
+### Colores de la capa Distribución territorial
+
+Cada territorio tiene un color propio, de tono medio, y el carmesí queda reservado para el **Cabildo de Jujuy**, que es el foco del trabajo. Los colores están asignados para que los territorios vecinos se distingan bien entre sí.
+
+| Territorio | `id_territorio` | Color |
+|---|---|---|
+| Atacama | `TER-0001` | `#c45a86` (rosa) |
+| Cabildo de Jujuy | `TER-0002` | `#c8102e` (carmesí) |
+| Lípez | `TER-0003` | `#4f9da6` (turquesa) |
+| Tarija | `TER-0004` | `#7c8794` (gris pizarra) |
+| Chichas | `TER-0005` | `#d9a21b` (ocre) |
+| Porco | `TER-0006` | `#7b5ea7` (violeta) |
+| Potosí | `TER-0007` | `#e07b39` (naranja) |
+| Yamparáez | `TER-0008` | `#8c4a2f` (siena) |
+
+Para cambiar un color, editar `TERRITORY_COLORS` al principio de `src/app.js` (el color del foco está en `FOCUS_TERRITORY`). Si se agrega un territorio nuevo sin color asignado, usa uno de reserva (`territoryPalette`).
+
+### Íconos de la capa de puntos
+
+Cada tipo tiene una silueta distinta, además de un color, para reconocerlo de un vistazo. Los dibujos están definidos en `POINT_TYPES` (`src/app.js`).
+
+| `tipoid` | Ícono | Etiqueta en el mapa |
+|---|---|---|
+| Capital | Estrella dorada, la más grande | Sí, con el nombre |
+| Ciudad / Pueblo | Círculo blanco con centro oscuro | No |
+| Mina | Rombo violeta con un pico blanco | No |
+| (otro valor) | Círculo gris pequeño | No |
+
+El campo `tipoid` no distingue mayúsculas ni tildes. También se reconocen `subciudad`, `villa`, `mineria` y `asiento`. Al alejar el zoom, los íconos se achican un poco para que no se amontonen.
+
+### Rótulos de los polígonos
+
+Los tamaños siguen una jerarquía, de mayor a menor:
+
+| Rótulo | Tamaño |
+|---|---|
+| Real Audiencia de Charcas | 11 px |
+| Gobernación del Tucumán | 10 px |
+| Cabildo de Jujuy (en dos líneas) | 9 px |
+| Resto de los territorios | 9 px |
+
+Los tamaños están en variables al comienzo del bloque de rótulos de `src/styles.css` (`--lbl-audiencia`, `--lbl-gobernacion`, `--lbl-cabildo`, `--lbl-territorio`).
 
 ### Campos esperados en cada archivo
 
@@ -60,31 +106,17 @@ La capa de puntos es opcional: si `puntos.geojson` no existe, el resto del mapa 
 | `Nombre` | `Jujuy` |
 | `tipoid` | `Capital`, `Ciudad`, `Pueblo` o `Mina` |
 
-Íconos de la capa de puntos:
-
-| `tipoid` | Ícono | Etiqueta en el mapa |
-|---|---|---|
-| Capital | ⭐ estrella dorada | Sí, con el nombre |
-| Ciudad / Pueblo | 🏠 casita oscura | No |
-| Mina | ⛏️ pico violeta | No |
-| (otro valor) | círculo gris | No |
-
-El campo `tipoid` no distingue mayúsculas ni tildes. También se reconocen `subciudad`, `villa`, `mineria` y `asiento`.
-
 ### Reglas para los datos
 
 - **Sistema de coordenadas:** todos los archivos deben estar en **WGS 84 (EPSG:4326)**, en grados de longitud y latitud. Si se exporta desde QGIS, elegir ese CRS al guardar. Un archivo con coordenadas en metros no se verá en el mapa, aunque su encabezado diga lo contrario.
 - **IDs únicos:** los identificadores se comparten entre todas las capas. No debe repetirse ninguno, ni siquiera entre archivos distintos.
-- **Vínculo con las fichas:** el ID de cada entidad es el que conecta el mapa con su ficha (ver más abajo).
+- **Vínculo con las fichas:** el ID de cada polígono es el que conecta el mapa con su ficha (ver más abajo).
 
 ---
 
 ## Fichas históricas
 
-Cada entidad puede tener una ficha con descripción, personas, acontecimientos, fuentes y relaciones documentadas. Hay dos orígenes, y el sitio usa el primero que encuentre:
-
-1. **Base de datos (Supabase).** Si está configurada y la ficha está publicada, se muestra completa: descripción, personas vinculadas con su trayectoria, acontecimientos, fuentes y relaciones.
-2. **Archivo local `src/fichas.js`.** Si no hay base de datos o la ficha no está publicada, se usa el texto de este archivo.
+Cada territorio y cada espacio de poder tiene una ficha con su descripción. Los textos están en `src/fichas.js`. Si un polígono no tiene ficha, el panel muestra "La ficha de esta entidad está en preparación".
 
 ### Formato de `src/fichas.js`
 
@@ -93,45 +125,16 @@ export const FICHAS = {
   'TER-0001': {
     name: 'Atacama',
     period: 'Siglo XVII',
-    description: `**Contexto histórico:** Texto del primer párrafo[1].
+    description: `**Contexto histórico:** Texto del primer párrafo.
 
-**Otro apartado:** Texto del segundo párrafo[2][3].`
+**Otro apartado:** Texto del segundo párrafo.`
   }
 };
 ```
 
-- El identificador (`TER-0001`, `POD-0001`, `PUN-0001`…) debe coincidir con el del archivo GeoJSON.
+- El identificador (`TER-0001`, `POD-0001`…) debe coincidir con el del archivo GeoJSON.
 - Los párrafos se separan con una línea en blanco.
-- `**texto**` produce negrita y `[1]` produce una referencia numerada.
-
----
-
-## Base de datos (opcional)
-
-El sitio puede conectarse a [Supabase](https://supabase.com/) para guardar las fichas y administrarlas. Se configura en `src/config.js`:
-
-```js
-export const CONFIG = {
-  supabaseUrl: 'https://TU-PROYECTO.supabase.co',
-  supabaseAnonKey: 'TU-CLAVE-ANON'
-};
-```
-
-Sin estos datos el sitio funciona igual, solo con las fichas de `src/fichas.js`.
-
-Tablas que usa el código:
-
-`entity_fiches`, `people`, `events`, `offices`, `sources`, `entity_relations`, `entity_people`, `entity_events`, `entity_sources` y `person_offices`.
-
-Para las fichas, `entity_type` puede valer `territorio`, `poder` o `punto`.
-
-> **Seguridad.** La clave `anon` es pública por diseño: cualquiera que abra el sitio puede verla. La protección real está en las políticas de seguridad por fila (*Row Level Security*) de Supabase, que deben permitir leer solo los registros publicados y escribir solo a usuarios autorizados. El alta de usuarios y los permisos se gestionan desde el panel de Supabase; no hay credenciales predeterminadas.
-
-> **Pendiente de completar:** el esquema SQL de las tablas y las políticas de seguridad. Conviene guardarlo en una carpeta (por ejemplo `database/`) para poder recrear la base.
-
-### Panel de administración
-
-El código incluye un panel para crear y editar fichas, personas, acontecimientos, cargos, fuentes y relaciones. Actualmente **no hay botón visible** para abrirlo en el sitio.
+- `**texto**` produce negrita y `*texto*` produce cursiva.
 
 ---
 
@@ -142,11 +145,12 @@ El código incluye un panel para crear y editar fichas, personas, acontecimiento
 ├── index.html
 ├── README.md
 ├── src/
-│   ├── app.js          Lógica del mapa, las fichas y el panel de administración
-│   ├── config.js       Datos de conexión a Supabase
-│   ├── fichas.js       Textos de las fichas
-│   ├── styles.css      Estilos
-│   └── TAPA.jpg        Imagen de portada
+│   ├── app.js            Lógica del mapa, los rótulos, las fichas y el menú
+│   ├── fichas.js         Textos de las fichas
+│   ├── styles.css        Estilos
+│   ├── TAPA.jpg          Imagen de portada
+│   ├── logo-rsc.png      Logo (encabezado)
+│   └── logo-rsc-dark.png Logo para fondo oscuro (pie de página)
 └── public/
     └── data/
         ├── puntos.geojson
@@ -171,7 +175,7 @@ python3 -m http.server 8000
 
 Luego abrir <http://localhost:8000> en el navegador.
 
-Se necesita conexión a internet, porque Leaflet, Supabase y las imágenes satelitales se cargan desde la red.
+Se necesita conexión a internet, porque Leaflet, la tipografía Montserrat y las imágenes de base se cargan desde la red.
 
 ---
 
@@ -184,9 +188,9 @@ Es un sitio estático: no requiere servidor propio. Se puede publicar tal cual e
 ## Tecnologías y créditos
 
 - [Leaflet](https://leafletjs.com/) 1.9.4 para el mapa.
-- [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) como cartografía de base (imágenes satelitales). Se mantiene la atribución que muestra el mapa.
-- [Supabase](https://supabase.com/) para fichas y administración (opcional).
-- Tipografías del sistema; sin dependencias de compilación.
+- [Esri World Imagery y Light Gray Canvas](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) como cartografía de base. Se mantiene la atribución que muestra el mapa.
+- [Montserrat](https://fonts.google.com/specimen/Montserrat) (Google Fonts) para los títulos.
+- Sin dependencias de compilación.
 
 **Dirección del proyecto:** Lic. Rocío Soledad Campos, docente de Historia y becaria doctoral del CONICET.
 Contacto: [rociocampos1292@gmail.com](mailto:rociocampos1292@gmail.com) · [Perfil en Academia.edu](https://conicet-ar.academia.edu/RocioSoledadCampos)
@@ -195,6 +199,6 @@ Contacto: [rociocampos1292@gmail.com](mailto:rociocampos1292@gmail.com) · [Perf
 
 ## Estado y licencia
 
-Proyecto de investigación histórica. **Contenido en desarrollo.**
+Proyecto de investigación histórica. **Contenido en desarrollo.** Por ahora las fichas no incluyen citas de fuentes.
 
 > **Pendiente de definir:** licencia del código, licencia de los textos y de los datos geográficos, y forma de citar el atlas.

@@ -19,7 +19,7 @@
   <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
     <a href="#mapa">Explorar el mapa</a><a href="#proposito">La mujer en el siglo XVII</a><a href="#quien-soy">Quién soy</a>
   </nav>
-  <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú" type="button">☰</button>
+  <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav" type="button">☰</button>
 </header>
 <main id="inicio">
   <section class="hero split" id="proyecto">
@@ -38,7 +38,7 @@
       <aside class="map-sidebar" aria-label="Controles del mapa">
         <div class="sidebar-head"><span class="eyebrow">CAPAS DE INFORMACIÓN</span><span class="layer-count" id="layer-count">4 capas activas</span></div>
         <div class="layer-control">
-          <label class="layer-title"><input id="points-toggle" type="checkbox" checked><span class="swatch points"></span><span><strong>Puntos del mapa</strong><small>Capitales, ciudades y asentamientos mineros</small></span></label>
+          <label class="layer-title"><input id="points-toggle" type="checkbox" checked><svg class="swatch-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg><span><strong>Puntos del mapa</strong><small>Capitales, ciudades y asentamientos mineros</small></span></label>
           <label class="opacity-label" for="points-opacity">Transparencia <output id="points-value">72%</output></label><input id="points-opacity" class="range" type="range" min="10" max="100" value="72">
         </div>
         <div class="layer-control">
@@ -58,7 +58,7 @@
         <div class="base-switch" role="group" aria-label="Mapa de base"><button type="button" id="base-sat" class="active" aria-pressed="true">Satélite</button><button type="button" id="base-light" aria-pressed="false">Mapa gris</button></div>
         <p class="hint" id="base-hint">Esri World Imagery (imágenes satelitales).</p>
         <div class="sidebar-divider"></div>
-        <div class="legend"><span class="eyebrow">REFERENCIAS</span><div><i class="legend-dot capital"></i> Capital</div><div><i class="legend-dot ciudad"></i> Ciudad / pueblo</div><div><i class="legend-dot mineria"></i> Asentamiento Minero</div><div><i class="legend-box aud"></i> Real Audiencia</div><div><i class="legend-box gob"></i> Gobernación del Tucumán</div><div><i class="legend-box territory"></i> Distribución territorial</div><div><i class="legend-outline"></i> Entidad seleccionada</div></div>
+        <div class="legend"><span class="eyebrow">REFERENCIAS</span><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg> Capital</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#ffffff" stroke="#1f2a30" stroke-width="2.6"/><circle cx="12" cy="12" r="3" fill="#1f2a30"/></svg> Ciudad / pueblo</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.5 22.5,12 12,22.5 1.5,12" fill="#7b4fa3" stroke="#2e1a40" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.4 11.2c2.6-3.4 6.6-3.4 9.2 0M12 8.3v8" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round"/></svg> Asentamiento minero</div><div><i class="legend-box aud"></i> Real Audiencia</div><div><i class="legend-box gob"></i> Gobernación del Tucumán</div><div><i class="legend-box territory"></i> Distribución territorial</div><div><i class="legend-outline"></i> Entidad seleccionada</div></div>
         <button id="reset-map" class="subtle-button" type="button">↺ Restablecer vista</button>
         
       </aside>
@@ -81,8 +81,6 @@
 <footer id="contacto"><div class="footer-brand"><img class="brand-logo" src="./src/logo-rsc-dark.png" alt="" width="65" height="64" decoding="async" loading="lazy"><div class="brand-text"><strong>Élites Locales y trayectorias políticas</strong><small>Atlas histórico digital · Siglo XVII</small></div></div><div class="footer-note">Proyecto de investigación histórica.<br>Contenido en desarrollo.</div><a href="mailto:rociocampos1292@gmail.com" class="footer-contact">Contacto <span>↗</span></a></footer>
 
 <div id="detail-panel" class="detail-panel" aria-hidden="true"><div class="detail-top"><span class="eyebrow" id="detail-type">FICHA HISTÓRICA</span><button id="detail-close" class="icon-button" aria-label="Cerrar ficha">×</button></div><div id="detail-content" class="detail-content"><p class="empty-state">Seleccioná una entidad del mapa para consultar su información.</p></div></div>
-<div id="admin-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="admin-title"><div class="modal-backdrop" data-close="true"></div><div class="modal-card"><div class="modal-head"><div><div class="eyebrow">ÁREA RESTRINGIDA</div><h2 id="admin-title">Administración</h2></div><button class="icon-button" id="admin-close" aria-label="Cerrar">×</button></div><div id="admin-auth"><p class="muted">Ingresá con tu cuenta autorizada para administrar fichas, personas, acontecimientos, fuentes y relaciones.</p><form id="login-form" class="stack-form"><label>Correo electrónico<input id="login-email" type="email" autocomplete="username" required></label><label>Contraseña<input id="login-password" type="password" autocomplete="current-password" required></label><button class="button primary" type="submit">Ingresar</button><p id="login-message" class="form-message" aria-live="polite"></p></form><p class="hint">El alta de usuarios y la asignación de permisos se realizan desde Supabase. No hay credenciales predeterminadas.</p></div><div id="admin-workspace" class="hidden"><div class="admin-toolbar"><span id="admin-user" class="muted"></span><button id="logout-button" class="subtle-button" type="button">Cerrar sesión</button></div><div class="admin-tabs"><button class="admin-tab active" data-tab="fichas">Fichas</button><button class="admin-tab" data-tab="personas">Personas</button><button class="admin-tab" data-tab="eventos">Acontecimientos</button><button class="admin-tab" data-tab="cargos">Cargos</button><button class="admin-tab" data-tab="fuentes">Fuentes</button><button class="admin-tab" data-tab="relaciones">Relaciones</button></div><div id="admin-panel"></div></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script type="module" src="./src/app.js"></script>
 </body></html>
