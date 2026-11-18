@@ -8,12 +8,19 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 // La rueda del mouse hace zoom solo después de hacer clic en el mapa; así no atrapa el scroll de la página.
 map.on('click focus', () => map.scrollWheelZoom.enable());
 map.on('mouseout blur', () => map.scrollWheelZoom.disable());
-// Mapas de base: imagen satelital y mapa gris claro (los colores de las capas se distinguen mejor).
+// Mapas de base: imagen satelital y Mid-century (mapa vectorial de Esri, fondo claro).
+// Si Mid-century pidiera clave de ArcGIS, pegarla acá (restringirla por dominio en la cuenta de ArcGIS).
+const ARCGIS_API_KEY = '';
+const MIDCENTURY_ITEM = '7675d44bb1e4428aa2c30a9b68f97822';
 const BASES = {
   sat: { hint: 'Esri World Imagery (imágenes satelitales).',
     layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19 }) },
-  light: { hint: 'Esri Light Gray Canvas (mapa base gris claro).',
-    layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ', maxNativeZoom: 16, maxZoom: 19 }) }
+  light: { hint: 'Esri Mid-Century (mapa de base vectorial).',
+    // Se crea recién al elegirlo, para no cargar MapLibre ni pedir tiles si nadie lo usa.
+    create: () => {
+      if (!(window.L && L.esri && L.esri.Vector)) throw new Error('esri-leaflet-vector no está cargado');
+      return L.esri.Vector.vectorTileLayer(MIDCENTURY_ITEM, ARCGIS_API_KEY ? { apikey: ARCGIS_API_KEY } : {});
+    } }
 };
 let currentBase = 'sat';
 BASES.sat.layer.addTo(map);
@@ -383,12 +390,20 @@ Object.entries(LAYER_UI).forEach(([key, ui]) => {
   $(ui.toggle).addEventListener('change', refreshLayers);
   $(ui.slider).addEventListener('input', e => { $(ui.output).value = `${e.target.value}%`; setLayerOpacity(layers[key], key); });
 });
+function baseLayer(key) {
+  const b = BASES[key];
+  if (!b.layer && b.create) b.layer = b.create();
+  return b.layer;
+}
 function setBase(key) {
   if (key === currentBase || !BASES[key]) return;
+  let next;
+  try { next = baseLayer(key); }
+  catch (e) { console.error(e); $('base-hint').textContent = 'No se pudo cargar ese mapa de base.'; return; }
   map.removeLayer(BASES[currentBase].layer);
   currentBase = key;
-  BASES[key].layer.addTo(map);
-  BASES[key].layer.bringToBack();
+  next.addTo(map);
+  if (typeof next.bringToBack === 'function') next.bringToBack();
   $('map').classList.toggle('base-light', key === 'light');
   $('base-sat').classList.toggle('active', key === 'sat'); $('base-sat').setAttribute('aria-pressed', key === 'sat');
   $('base-light').classList.toggle('active', key === 'light'); $('base-light').setAttribute('aria-pressed', key === 'light');
