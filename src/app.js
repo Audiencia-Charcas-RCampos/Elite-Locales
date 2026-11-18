@@ -21,9 +21,10 @@ const LAYER_UI = {
   audiencia:   { toggle: 'aud-toggle',       slider: 'aud-opacity',       output: 'aud-value' },
   puntos:      { toggle: 'points-toggle',    slider: 'points-opacity',    output: 'points-value' }
 };
-// Colores de las capas de polígonos y orden de apilado (el territorio queda debajo).
+// Colores de las capas de polígonos y orden de apilado (de abajo hacia arriba: Audiencia, Gobernación, territorios).
 const LAYER_COLORS = { audiencia: '#2f6fb0', gobernacion: '#3f9a4a' };
-const LAYER_PANE = { territorio: 'pane-territorio', audiencia: 'pane-audiencia', gobernacion: 'pane-gobernacion' };
+const LAYER_PANE = { audiencia: 'pane-audiencia', gobernacion: 'pane-gobernacion', territorio: 'pane-territorio' };
+const LAYER_BORDER = { audiencia: '#7fb8f0', gobernacion: '#6fd18d' };
 Object.values(LAYER_PANE).forEach((name, i) => { map.createPane(name).style.zIndex = 410 + i * 5; });
 // Capa de puntos: el ícono depende del campo "tipoid" de cada punto.
 const POINT_TYPES = {
@@ -63,24 +64,28 @@ const colors = { territorio: '#71816e', poder: '#b76d4d' };
 function esc(value='') { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 // Nombres para mostrar: corrige tildes y fuerza "Cabildo de Jujuy" aunque el dato diga solo "Jujuy".
 const DISPLAY_NAMES = {
-  'jujuy': 'Cabildo de Jujuy',
   'potosi': 'Potosí',
   'lipes': 'Lípez',
   'yamparaez': 'Yamparáez',
   'cordoba': 'Córdoba',
   'san miguel de tucuman': 'San Miguel de Tucumán'
 };
-// Los espacios de poder tienen un rótulo fijo (el dato trae "Audiencia Real de Charcas" y "Gobernacion de Tucuman").
-const POWER_LABELS = { audiencia: 'Real Audiencia de Charcas', gobernacion: 'Gobernación del Tucumán' };
+const TERRITORY_NAMES = { 'jujuy': 'Cabildo de Jujuy' };   // solo para la capa de territorios
+// Los espacios de poder tienen un rótulo fijo, en dos líneas.
+const POWER_LABELS = { audiencia: ['Real Audiencia', 'de Charcas'], gobernacion: ['Gobernación', 'del Tucumán'] };
+// Posición fija de esos rótulos [lat, lng]: zonas libres de puntos y de otras capas.
+const LABEL_ANCHORS = { audiencia: [-16.04, -62.37], gobernacion: [-30.18, -67.27] };
 function featureName(p) {
   const raw = p.display_name || p.Nombre || p.Nombre_poder || p.nombre || p.id_territorio || p.id_poder || p.id_punto || 'Entidad sin denominación';
-  return DISPLAY_NAMES[norm(raw)] || raw;
+  const k = norm(raw);
+  if (p.layer_key === 'territorio' && TERRITORY_NAMES[k]) return TERRITORY_NAMES[k];
+  return DISPLAY_NAMES[k] || raw;
 }
-function labelText(p) { return POWER_LABELS[p.layer_key] || featureName(p); }
+function labelHtml(p) { return POWER_LABELS[p.layer_key] ? POWER_LABELS[p.layer_key].map(esc).join('<br>') : esc(featureName(p)); }
 function featureId(p) { return p.entity_id || p.id_territorio || p.id_poder || p.id_punto || ''; }
 // Paleta de territorios: el rojo más intenso queda reservado para el Cabildo de Jujuy (foco del trabajo).
-const FOCUS_TERRITORY = { name: 'cabildo de jujuy', color: '#67000d' };
-const territoryPalette = ['#fee8de','#fdd5c3','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d'];
+const FOCUS_TERRITORY = { name: 'cabildo de jujuy', color: '#b10f1e' };
+const territoryPalette = ['#fff0e8','#fee0d2','#fcbba1','#fca585','#fc9272','#fb8060','#f4694c'];
 const territoryColor = new Map();
 const isFocusTerritory = (p) => norm(featureName(p)) === FOCUS_TERRITORY.name;
 
@@ -94,18 +99,29 @@ function territoryFill(p) {
 }
 function styleFeature(feature) {
   const p = feature.properties || {};
-  const id = featureId(p);
   const key = p.layer_key;
   const selected = isSelected(feature);
   const slider = Number($(LAYER_UI[key].slider).value) / 100;
-  const isTer = key === 'territorio';
+  if (key === 'territorio') {
+    const focus = isFocusTerritory(p);
+    return {
+      pane: LAYER_PANE[key],
+      color: focus || selected ? '#ffffff' : '#fff4ec',
+      weight: selected ? 4 : (focus ? 3.2 : 1.4),
+      opacity: 1,
+      fillColor: territoryFill(p),
+      fillOpacity: Math.min(1, slider * (focus ? 1.22 : 1.05) + (selected ? .1 : 0)),
+      className: focus ? 'territory-focus' : ''
+    };
+  }
+  // Espacios de poder: relleno suave y borde bien marcado, para no tapar los territorios.
   return {
     pane: LAYER_PANE[key],
-    color: selected ? '#a65f43' : (isTer ? '#2a0a08' : '#ffffff'),
-    weight: selected ? 4 : (isTer ? 1.5 : 2),
+    color: selected ? '#ffffff' : LAYER_BORDER[key],
+    weight: selected ? 4 : 3,
     opacity: 1,
-    fillColor: isTer ? territoryFill(p) : LAYER_COLORS[key],
-    fillOpacity: selected ? Math.min(1, slider * .8 + .15) : slider * .8
+    fillColor: LAYER_COLORS[key],
+    fillOpacity: slider * (selected ? .5 : .28)
   };
 }
 function restyle(layer, feature) {
@@ -135,8 +151,8 @@ function labelLatLng(geometry) {
 function bindAreaLabel(feature, layer) {
   const p = feature.properties;
   const cls = `area-label area-label-${p.layer_key}${p.layer_key === 'territorio' && isFocusTerritory(p) ? ' area-label-focus' : ''}`;
-  layer.bindTooltip(esc(labelText(p)), { permanent: true, direction: 'center', className: cls, interactive: false, opacity: 1 });
-  const at = labelLatLng(feature.geometry);
+  layer.bindTooltip(labelHtml(p), { permanent: true, direction: 'center', className: cls, interactive: false, opacity: 1 });
+  const at = LABEL_ANCHORS[p.layer_key] ? L.latLng(LABEL_ANCHORS[p.layer_key][0], LABEL_ANCHORS[p.layer_key][1]) : labelLatLng(feature.geometry);
   if (at) layer.getCenter = () => at;   // el tooltip permanente se ancla en este punto
 }
 function updateLabelZoom() { $('map').classList.toggle('zoom-low', map.getZoom() < 6); }

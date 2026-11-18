@@ -414,7 +414,7 @@ a {
 }
 
 .swatch.territory,.legend-box.territory {
-  background:linear-gradient(90deg,#fee8de,#fb6a4a,#cb181d,#67000d);
+  background:linear-gradient(90deg,#fff0e8,#fc9272,#f4694c,#b10f1e);
   border:1.5px solid #2a0a08
 }
 
@@ -1302,3 +1302,37 @@ footer {
 @media (max-width: 700px) {
   .footer-brand .brand-logo { height: 54px; }
 }
+
+/* ---- Rótulos rediseñados (más legibles sobre la imagen satelital) ---- */
+.leaflet-tooltip.area-label-audiencia,
+.leaflet-tooltip.area-label-gobernacion {
+  background: rgba(18, 24, 26, .74);
+  border: 1.5px solid;
+  border-radius: 14px;
+  padding: 5px 13px 6px;
+  font: 600 11px/1.35 'Montserrat', var(--sans);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+}
+.leaflet-tooltip.area-label-audiencia { border-color: #7fb8f0; }
+.leaflet-tooltip.area-label-gobernacion { border-color: #6fd18d; }
+.leaflet-tooltip.area-label-territorio {
+  font: 600 10.5px/1.2 'Montserrat', var(--sans);
+  letter-spacing: .03em;
+  text-shadow: 0 0 2px #000, 0 0 4px #000, 0 1px 3px #000;
+}
+/* Cabildo de Jujuy: rótulo destacado + resplandor en el polígono */
+.leaflet-tooltip.area-label-focus {
+  background: #fff;
+  color: #8c0b17;
+  border: 2px solid #8c0b17;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font: 700 12px/1.2 'Montserrat', var(--sans);
+  letter-spacing: .02em;
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+path.territory-focus { filter: drop-shadow(0 0 5px rgba(255, 255, 255, .85)) drop-shadow(0 0 2px #fff); }
