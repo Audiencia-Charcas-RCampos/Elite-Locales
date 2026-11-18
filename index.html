@@ -7,7 +7,7 @@
   <title>Élites locales y trayectorias políticas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
-  <link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://server.arcgisonline.com">
+  <link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://server.arcgisonline.com"><link rel="preconnect" href="https://www.arcgis.com"><link rel="preconnect" href="https://basemaps.arcgis.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="./src/styles.css">
 </head>
@@ -55,7 +55,7 @@
         </div>
         <div class="sidebar-divider"></div>
         <span class="eyebrow">CARTOGRAFÍA DE BASE</span>
-        <div class="base-switch" role="group" aria-label="Mapa de base"><button type="button" id="base-sat" class="active" aria-pressed="true">Satélite</button><button type="button" id="base-light" aria-pressed="false">Mapa gris</button></div>
+        <div class="base-switch" role="group" aria-label="Mapa de base"><button type="button" id="base-sat" class="active" aria-pressed="true">Satélite</button><button type="button" id="base-light" aria-pressed="false">Mid-century</button></div>
         <p class="hint" id="base-hint">Esri World Imagery (imágenes satelitales).</p>
         <div class="sidebar-divider"></div>
         <div class="legend"><span class="eyebrow">REFERENCIAS</span><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg> Capital</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#ffffff" stroke="#1f2a30" stroke-width="2.6"/><circle cx="12" cy="12" r="3" fill="#1f2a30"/></svg> Ciudad / pueblo</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.5 22.5,12 12,22.5 1.5,12" fill="#7b4fa3" stroke="#2e1a40" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.4 11.2c2.6-3.4 6.6-3.4 9.2 0M12 8.3v8" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round"/></svg> Asentamiento minero</div><div class="territory-wrap" id="territory-key-wrap"><span class="legend-sub">Territorios</span><div id="territory-key" class="territory-key"></div></div><div><i class="legend-outline"></i> Entidad seleccionada</div></div>
@@ -83,5 +83,8 @@
 
 <div id="detail-panel" class="detail-panel" aria-hidden="true"><div class="detail-top"><span class="eyebrow" id="detail-type">FICHA HISTÓRICA</span><button id="detail-close" class="icon-button" aria-label="Cerrar ficha">×</button></div><div id="detail-content" class="detail-content"><p class="empty-state">Seleccioná una entidad del mapa para consultar su información.</p></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Mapa de base Mid-century (vectorial): esri-leaflet + esri-leaflet-vector, con versiones fijas -->
+<script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/esri-leaflet-vector@4.3.2/dist/esri-leaflet-vector.js" crossorigin=""></script>
 <script type="module" src="./src/app.js"></script>
 </body></html>
