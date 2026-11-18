@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f3eadb">
   <title>Élites locales y trayectorias políticas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
   <link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://server.arcgisonline.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="./src/styles.css">
@@ -28,54 +28,55 @@
       <h1>Élites locales y trayectorias políticas al sur de Charcas:<br><em>agentes de poder en Jujuy durante el siglo XVII</em></h1>
       <p class="lead">El presente trabajo examina las prácticas, políticas y las disputas jurisdiccionales de la élite de Jujuy durante el siglo XVII a través de las biografías de Juan Ochoa de Zárate, Pablo Bernárdes de Ovando y Pablo de Espinosa. El estudio demuestra la estrecha interdependencia social y política del espacio jujeño con los distintos núcleos de poder charqueños: La Plata, Potosí, Chichas y Lípez, entre otros.</p>
       <div class="hero-actions"><a class="button primary" href="#mapa">Explorar cartografía <span>→</span></a></div>
-      <div class="hero-meta"><span>INVESTIGACIÓN HISTÓRICA</span><span>·</span><span>CARTOGRAFÍA INTERACTIVA</span></div>
+      
     </div>
     <div class="hero-art"><img src="./src/TAPA.jpg" alt="Portada del proyecto" decoding="async"></div>
   </section>
   <section class="map-section" id="mapa">
-    <div class="section-heading"><div><div class="eyebrow">01 / EXPLORACIÓN ESPACIAL</div><h2>El territorio como<br><em>fuente histórica.</em></h2></div><p>Activá las capas, explorá los polígonos y consultá sus fichas.</p></div>
+    <div class="section-heading"><div><div class="eyebrow">01 / EXPLORACIÓN ESPACIAL</div><h2>El territorio como<br><em>fuente histórica.</em></h2><p>Activá las capas, explorá los polígonos y consultá sus fichas.</p></div></div>
     <div class="map-shell">
       <aside class="map-sidebar" aria-label="Controles del mapa">
         <div class="sidebar-head"><span class="eyebrow">CAPAS DE INFORMACIÓN</span><span class="layer-count" id="layer-count">4 capas activas</span></div>
         <div class="layer-control">
           <label class="layer-title"><input id="points-toggle" type="checkbox" checked><svg class="swatch-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg><span><strong>Puntos del mapa</strong><small>Capitales, ciudades y asentamientos mineros</small></span></label>
-          <label class="opacity-label" for="points-opacity">Transparencia <output id="points-value">72%</output></label><input id="points-opacity" class="range" type="range" min="10" max="100" value="72">
+          <details class="opacity-details"><summary>Transparencia <output id="points-value">72%</output></summary><input id="points-opacity" class="range" type="range" min="10" max="100" value="72" aria-label="Transparencia: Puntos del mapa"></details>
         </div>
         <div class="layer-control">
           <label class="layer-title"><input id="aud-toggle" type="checkbox" checked><span class="swatch aud"></span><span><strong>Real Audiencia</strong><small>Real Audiencia de Charcas</small></span></label>
-          <label class="opacity-label" for="aud-opacity">Transparencia <output id="aud-value">72%</output></label><input id="aud-opacity" class="range" type="range" min="10" max="100" value="72">
+          <details class="opacity-details"><summary>Transparencia <output id="aud-value">72%</output></summary><input id="aud-opacity" class="range" type="range" min="10" max="100" value="72" aria-label="Transparencia: Real Audiencia"></details>
         </div>
         <div class="layer-control">
           <label class="layer-title"><input id="gob-toggle" type="checkbox" checked><span class="swatch gob"></span><span><strong>Gobernación del Tucumán</strong><small>Espacio de la Gobernación</small></span></label>
-          <label class="opacity-label" for="gob-opacity">Transparencia <output id="gob-value">72%</output></label><input id="gob-opacity" class="range" type="range" min="10" max="100" value="72">
+          <details class="opacity-details"><summary>Transparencia <output id="gob-value">72%</output></summary><input id="gob-opacity" class="range" type="range" min="10" max="100" value="72" aria-label="Transparencia: Gobernación del Tucumán"></details>
         </div>
         <div class="layer-control">
           <label class="layer-title"><input id="territory-toggle" type="checkbox" checked><span class="swatch territory"></span><span><strong>Distribución territorial</strong><small>Jurisdicciones y territorios</small></span></label>
-          <label class="opacity-label" for="territory-opacity">Transparencia <output id="territory-value">72%</output></label><input id="territory-opacity" class="range" type="range" min="10" max="100" value="72">
+          <details class="opacity-details"><summary>Transparencia <output id="territory-value">72%</output></summary><input id="territory-opacity" class="range" type="range" min="10" max="100" value="72" aria-label="Transparencia: Distribución territorial"></details>
         </div>
         <div class="sidebar-divider"></div>
         <span class="eyebrow">CARTOGRAFÍA DE BASE</span>
         <div class="base-switch" role="group" aria-label="Mapa de base"><button type="button" id="base-sat" class="active" aria-pressed="true">Satélite</button><button type="button" id="base-light" aria-pressed="false">Mapa gris</button></div>
         <p class="hint" id="base-hint">Esri World Imagery (imágenes satelitales).</p>
         <div class="sidebar-divider"></div>
-        <div class="legend"><span class="eyebrow">REFERENCIAS</span><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg> Capital</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#ffffff" stroke="#1f2a30" stroke-width="2.6"/><circle cx="12" cy="12" r="3" fill="#1f2a30"/></svg> Ciudad / pueblo</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.5 22.5,12 12,22.5 1.5,12" fill="#7b4fa3" stroke="#2e1a40" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.4 11.2c2.6-3.4 6.6-3.4 9.2 0M12 8.3v8" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round"/></svg> Asentamiento minero</div><div><i class="legend-box aud"></i> Real Audiencia</div><div><i class="legend-box gob"></i> Gobernación del Tucumán</div><div><i class="legend-box territory"></i> Distribución territorial</div><div><i class="legend-outline"></i> Entidad seleccionada</div></div>
+        <div class="legend"><span class="eyebrow">REFERENCIAS</span><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.6 14.9,8.5 22.4,9.1 16.7,14 18.5,21.4 12,17.5 5.5,21.4 7.3,14 1.6,9.1 9.1,8.5" fill="#f2b705" stroke="#4a3300" stroke-width="1.5" stroke-linejoin="round"/></svg> Capital</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#ffffff" stroke="#1f2a30" stroke-width="2.6"/><circle cx="12" cy="12" r="3" fill="#1f2a30"/></svg> Ciudad / pueblo</div><div><svg class="legend-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polygon points="12,1.5 22.5,12 12,22.5 1.5,12" fill="#7b4fa3" stroke="#2e1a40" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.4 11.2c2.6-3.4 6.6-3.4 9.2 0M12 8.3v8" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round"/></svg> Asentamiento minero</div><div class="territory-wrap" id="territory-key-wrap"><span class="legend-sub">Territorios</span><div id="territory-key" class="territory-key"></div></div><div><i class="legend-outline"></i> Entidad seleccionada</div></div>
+        <details class="ficha-details"><summary class="eyebrow">Fichas históricas</summary><div id="ficha-list" class="ficha-list"></div></details>
         <button id="reset-map" class="subtle-button" type="button">↺ Restablecer vista</button>
         
       </aside>
       <div class="map-main"><div id="map" role="application" aria-label="Mapa interactivo de territorios y espacios de poder"></div><div class="map-top-label"><span class="map-kicker">ESPACIO DE CHARCAS</span><span class="map-period">SIGLO XVII</span></div><div id="map-status" class="map-status">Cargando cartografía…</div></div>
     </div>
-    <div class="map-footnote"><span>DATOS GEOGRÁFICOS · WGS 84 / EPSG:4326</span><span>Seleccioná un polígono para consultar su ficha</span></div>
+    <div class="map-footnote"><span>DATOS GEOGRÁFICOS · WGS 84 / EPSG:4326</span><span>Seleccioná un polígono para consultar su ficha · Con un clic en el mapa se activa el zoom con la rueda</span></div>
   </section>
-  <section class="project-section" id="proposito"><div class="eyebrow">02 / LA MUJER EN EL SIGLO XVII</div><div class="project-grid"><h2>La mujer y su papel<br><em>activo y estratégico.</em></h2><div>
+  <section class="project-section" id="proposito"><div class="eyebrow">02 / LA MUJER EN EL SIGLO XVII</div><div class="project-grid"><div><h2>La mujer y su papel<br><em>activo y estratégico.</em></h2><blockquote class="pull-quote">Las mujeres desempeñaron un papel fundamental en la consolidación de las élites locales del siglo XVII.</blockquote></div><div>
 <p>Las mujeres desempeñaron un papel fundamental en la consolidación de las élites locales del siglo XVII. A través de los matrimonios, contribuyeron a establecer alianzas entre familias y facilitar el acceso a encomiendas, tierras, recursos y prestigio social. Casos como los de Petronila de Castro y Bartolina Sánchez de Garnica muestran su importancia en la articulación de linajes.</p>
 <p>También tuvieron un rol activo en la defensa del patrimonio familiar, utilizando recursos legales para proteger sus dotes frente a deudas y embargos. Además, administraron haciendas, negocios y redes comerciales durante las ausencias o tras la muerte de sus esposos, y reforzaron el prestigio familiar mediante donaciones, fundaciones religiosas y participación en cofradías.</p>
 </div></div></section>
-  <section class="sources-section" id="autoria"><div><div class="eyebrow">03 / DIRECCIÓN DEL PROYECTO</div><h2>Detrás del atlas.</h2><p class="section-sub">Autoría y contacto</p></div><div class="about"><span class="about-role">Becaria doctoral</span><h3>Lic. Rocío Soledad Campos</h3>
+  <section class="sources-section" id="autoria"><div><div class="eyebrow">03 / DIRECCIÓN DEL PROYECTO</div><h2>Detrás del atlas.</h2><p class="section-sub">Autoría y contacto</p></div><div class="about"><h3>Lic. Rocío Soledad Campos</h3>
 <ul class="about-list">
-<li><span class="about-icon" aria-hidden="true">📚</span><span>Docente de Historia</span></li>
-<li><span class="about-icon" aria-hidden="true">✏️📜</span><span>Becaria Doctoral en CONICET</span></li>
-<li><span class="about-icon" aria-hidden="true">✉️</span><span><a href="mailto:rociocampos1292@gmail.com">rociocampos1292@gmail.com</a></span></li>
-<li><span class="about-icon" aria-hidden="true">🎓</span><span><a href="https://conicet-ar.academia.edu/RocioSoledadCampos" target="_blank" rel="noopener">Perfil de Academia.edu ↗</a></span></li>
+<li><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span><span>Docente de Historia</span></li>
+<li><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></span><span>Becaria Doctoral en CONICET</span></li>
+<li><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><span><a href="mailto:rociocampos1292@gmail.com">rociocampos1292@gmail.com</a></span></li>
+<li><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span><span><a href="https://conicet-ar.academia.edu/RocioSoledadCampos" target="_blank" rel="noopener">Perfil de Academia.edu ↗</a></span></li>
 </ul></div></section>
 </main>
 <footer id="contacto"><div class="footer-brand"><img class="brand-logo" src="./src/logo-rsc-dark.png" alt="" width="65" height="64" decoding="async" loading="lazy"><div class="brand-text"><strong>Élites Locales y trayectorias políticas</strong><small>Atlas histórico digital · Siglo XVII</small></div></div><div class="footer-note">Proyecto de investigación histórica.<br>Contenido en desarrollo.</div><a href="mailto:rociocampos1292@gmail.com" class="footer-contact">Contacto <span>↗</span></a></footer>
