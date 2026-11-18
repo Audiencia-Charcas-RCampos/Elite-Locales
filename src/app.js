@@ -182,20 +182,20 @@ async function getRelated(table, foreignKey, id, select='*') {
   return data || [];
 }
 function fichaHtml(text) {
-  // Admite párrafos, **negrita**, *cursiva* y viñetas ("* "). Las marcas de referencia [n] no se muestran.
+  // Todas las fichas se muestran con el mismo formato: un párrafo por apartado ("**Título:** texto").
+  // Si un texto trae viñetas ("* "), se muestran igual, como párrafos. Las marcas de referencia [n] no se muestran.
   const inline = (s) => esc(s).replace(/\[\d+\]/g, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/ +([.,;:])/g, '$1');
-  const html = [];
+  const paragraphs = [];
   String(text || '').split(/\n{2,}/).forEach(block => {
-    let list = [], para = [];
-    const flushList = () => { if (list.length) html.push(`<ul>${list.map(x => `<li>${inline(x)}</li>`).join('')}</ul>`); list = []; };
-    const flushPara = () => { if (para.length) html.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; };
+    let current = [];
+    const flush = () => { if (current.length) paragraphs.push(current.join('<br>')); current = []; };
     block.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
-      if (/^[*•-]\s+/.test(line)) { flushPara(); list.push(line.replace(/^[*•-]\s+/, '')); }
-      else { flushList(); para.push(line); }
+      if (/^[*•-]\s+/.test(line)) { flush(); current.push(inline(line.replace(/^[*•-]\s+/, ''))); flush(); }
+      else current.push(inline(line));
     });
-    flushList(); flushPara();
+    flush();
   });
-  return html.join('');
+  return paragraphs.map(p => `<p>${p}</p>`).join('');
 }
 async function renderDetail(feature, type) {
   const p = feature.properties || {};

@@ -1254,6 +1254,12 @@ footer {
 .admin-link.footer-admin { margin: 0 0 0 4px; color: #e1b08e; font-size: 10px; padding: 0; }
 .admin-link.footer-admin:hover { text-decoration: underline; }
 
-/* ---- Viñetas dentro de las fichas ---- */
-.detail-content .ficha-body ul { margin: 0 0 12px; padding-left: 1.2em; }
-.detail-content .ficha-body li { margin: 0 0 8px; line-height: 1.6; }
+/* ---- Cuerpo de ficha: una sola tipografía para todas las fichas ---- */
+.detail-content .ficha-body,
+.detail-content .ficha-body p,
+.detail-content .ficha-body strong,
+.detail-content .ficha-body em {
+  font-family: var(--serif);
+}
+.detail-content .ficha-body p { font-size: 14px; line-height: 1.75; color: #555950; margin: 0 0 12px; }
+.detail-content .ficha-body strong { font-weight: 700; color: var(--ink); }
