@@ -8,19 +8,12 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 // La rueda del mouse hace zoom solo después de hacer clic en el mapa; así no atrapa el scroll de la página.
 map.on('click focus', () => map.scrollWheelZoom.enable());
 map.on('mouseout blur', () => map.scrollWheelZoom.disable());
-// Mapas de base: imagen satelital y Mid-century (mapa vectorial de Esri, fondo claro).
-// Si Mid-century pidiera clave de ArcGIS, pegarla acá (restringirla por dominio en la cuenta de ArcGIS).
-const ARCGIS_API_KEY = '';
-const MIDCENTURY_ITEM = '7675d44bb1e4428aa2c30a9b68f97822';
+// Mapas de base: imagen satelital y relieve sombreado (fondo claro y sin rótulos, para que se distingan las capas).
 const BASES = {
   sat: { hint: 'Esri World Imagery (imágenes satelitales).',
     layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19 }) },
-  light: { hint: 'Esri Mid-Century (mapa de base vectorial).',
-    // Se crea recién al elegirlo, para no cargar MapLibre ni pedir tiles si nadie lo usa.
-    create: () => {
-      if (!(window.L && L.esri && L.esri.Vector)) throw new Error('esri-leaflet-vector no está cargado');
-      return L.esri.Vector.vectorTileLayer(MIDCENTURY_ITEM, ARCGIS_API_KEY ? { apikey: ARCGIS_API_KEY } : {});
-    } }
+  light: { hint: 'Esri World Shaded Relief (relieve, sin rótulos).',
+    layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Source: Esri', maxNativeZoom: 13, maxZoom: 19 }) }
 };
 let currentBase = 'sat';
 BASES.sat.layer.addTo(map);
@@ -147,7 +140,7 @@ function styleFeature(feature) {
     const focus = isFocusTerritory(p);
     return {
       pane: LAYER_PANE[key],
-      // Bordes blancos entre territorios; oscuros solo para el seleccionado y el foco sobre el mapa gris.
+      // Bordes blancos entre territorios; oscuros solo para el seleccionado y el foco sobre el mapa de relieve.
       color: currentBase === 'light'
         ? (selected ? '#3b0a10' : focus ? '#6e0a14' : '#ffffff')
         : '#ffffff',
@@ -390,20 +383,12 @@ Object.entries(LAYER_UI).forEach(([key, ui]) => {
   $(ui.toggle).addEventListener('change', refreshLayers);
   $(ui.slider).addEventListener('input', e => { $(ui.output).value = `${e.target.value}%`; setLayerOpacity(layers[key], key); });
 });
-function baseLayer(key) {
-  const b = BASES[key];
-  if (!b.layer && b.create) b.layer = b.create();
-  return b.layer;
-}
 function setBase(key) {
   if (key === currentBase || !BASES[key]) return;
-  let next;
-  try { next = baseLayer(key); }
-  catch (e) { console.error(e); $('base-hint').textContent = 'No se pudo cargar ese mapa de base.'; return; }
   map.removeLayer(BASES[currentBase].layer);
   currentBase = key;
-  next.addTo(map);
-  if (typeof next.bringToBack === 'function') next.bringToBack();
+  BASES[key].layer.addTo(map);
+  BASES[key].layer.bringToBack();
   $('map').classList.toggle('base-light', key === 'light');
   $('base-sat').classList.toggle('active', key === 'sat'); $('base-sat').setAttribute('aria-pressed', key === 'sat');
   $('base-light').classList.toggle('active', key === 'light'); $('base-light').setAttribute('aria-pressed', key === 'light');

@@ -912,7 +912,9 @@ path.territory-focus { filter: drop-shadow(0 0 5px rgba(255, 255, 255, .85)) dro
   z-index: 800;
 }
 
-/* ---- Ajustes con el mapa gris claro ---- */
+/* ---- Ajustes con el mapa de relieve (claro) ---- */
+/* Tinte sepia suave para que el fondo combine con el papel crema del sitio; solo afecta a los tiles de base. */
+#map.base-light .leaflet-tile-pane { filter: sepia(.3) saturate(.9); }
 #map.base-light .pt-label { color: #1d2528; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 1px 2px #fff; }
 #map.base-light path.territory-focus { filter: drop-shadow(0 0 3px rgba(120, 10, 20, .6)); }
 
