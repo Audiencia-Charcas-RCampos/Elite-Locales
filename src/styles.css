@@ -1251,8 +1251,6 @@ footer {
 .leaflet-popup-content:has(.popup-name-only) { margin: 9px 14px; }
 
 /* ---- Botón de administración en el pie ---- */
-.admin-link.footer-admin { margin: 0 0 0 4px; color: #e1b08e; font-size: 10px; padding: 0; }
-.admin-link.footer-admin:hover { text-decoration: underline; }
 
 /* ---- Cuerpo de ficha: una sola tipografía para todas las fichas ---- */
 .detail-content .ficha-body,
@@ -1263,3 +1261,44 @@ footer {
 }
 .detail-content .ficha-body p { font-size: 14px; line-height: 1.75; color: #555950; margin: 0 0 12px; }
 .detail-content .ficha-body strong { font-weight: 700; color: var(--ink); }
+
+/* ---- Marca del encabezado: logo + texto en Montserrat ---- */
+.topbar .brand { gap: 14px; }
+.topbar .brand-logo { height: 64px; width: auto; display: block; flex: none; }
+.topbar .brand-text { display: block; font-family: 'Montserrat', var(--sans); }
+.topbar .brand-text strong {
+  display: block;
+  font: 700 16px/1.15 'Montserrat', var(--sans);
+  letter-spacing: .01em;
+  color: var(--ink);
+}
+.topbar .brand-text small {
+  display: block;
+  margin-top: 3px;
+  font: 400 12.5px/1.2 'Montserrat', var(--sans);
+  letter-spacing: .01em;
+  color: #8d5826; /* cobre del logo */
+}
+@media (max-width: 700px) {
+  .topbar .brand { gap: 10px; }
+  .topbar .brand-logo { height: 52px; }
+  .topbar .brand-text strong { font-size: 14px; }
+  .topbar .brand-text small { font-size: 11.5px; }
+}
+
+/* ---- Encabezado opaco: evita que el texto de las secciones se transparente detrás ---- */
+.topbar { background: #fbf8f1; }
+
+/* ---- Barra lateral: título con más jerarquía y contador de capas ---- */
+.sidebar-head { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.sidebar-head .eyebrow { font-size: 11px; letter-spacing: .16em; }
+.layer-count { font: 500 10.5px var(--sans); letter-spacing: .02em; color: var(--muted); white-space: nowrap; }
+
+/* ---- Pie de página: logo para fondo oscuro + Montserrat ---- */
+.footer-brand { gap: 16px; }
+.footer-brand .brand-logo { height: 64px; width: auto; display: block; flex: none; }
+.footer-brand .brand-text strong { font: 700 14px/1.25 'Montserrat', var(--sans); letter-spacing: .01em; color: #f3eadb; }
+.footer-brand .brand-text small { margin-top: 4px; font: 400 11.5px/1.3 'Montserrat', var(--sans); letter-spacing: .01em; color: #d9a877; }
+@media (max-width: 700px) {
+  .footer-brand .brand-logo { height: 54px; }
+}

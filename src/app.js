@@ -232,7 +232,13 @@ function buildLayer(features, layerKey, type) {
   layers[layerKey] = layer; layerCounts[layerKey] = features.length;
   return layer;
 }
+function updateLayerCount() {
+  const n = Object.values(LAYER_UI).filter(ui => $(ui.toggle).checked).length;
+  const el = $('layer-count');
+  if (el) el.textContent = `${n} ${n === 1 ? 'capa activa' : 'capas activas'}`;
+}
 function refreshLayers() {
+  updateLayerCount();
   Object.entries(layers).forEach(([key, layer]) => {
     const on = $(LAYER_UI[key].toggle).checked;
     if (on && !map.hasLayer(layer)) layer.addTo(map);
