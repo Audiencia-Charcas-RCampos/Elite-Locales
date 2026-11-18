@@ -1,5 +1,8 @@
 import { CONFIG } from './config.js';
-import { FICHAS } from './fichas.js';
+
+// fichas.js es opcional: si no existe, el mapa carga igual y las fichas salen de Supabase.
+let FICHAS = {};
+try { ({ FICHAS } = await import('./fichas.js')); } catch (e) { console.warn('fichas.js no disponible; se continúa sin fichas locales.', e); }
 
 const $ = (id) => document.getElementById(id);
 const hasSupabase = Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey && window.supabase);
@@ -58,13 +61,35 @@ const featureIndex = new Map();
 const colors = { territorio: '#71816e', poder: '#b76d4d' };
 
 function esc(value='') { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function featureName(p) { return p.display_name || p.Nombre || p.Nombre_poder || p.nombre || p.id_territorio || p.id_poder || p.id_punto || 'Entidad sin denominación'; }
+// Nombres para mostrar: corrige tildes y fuerza "Cabildo de Jujuy" aunque el dato diga solo "Jujuy".
+const DISPLAY_NAMES = {
+  'jujuy': 'Cabildo de Jujuy',
+  'potosi': 'Potosí',
+  'lipes': 'Lípez',
+  'yamparaez': 'Yamparáez',
+  'cordoba': 'Córdoba',
+  'san miguel de tucuman': 'San Miguel de Tucumán'
+};
+// Los espacios de poder tienen un rótulo fijo (el dato trae "Audiencia Real de Charcas" y "Gobernacion de Tucuman").
+const POWER_LABELS = { audiencia: 'Real Audiencia de Charcas', gobernacion: 'Gobernación del Tucumán' };
+function featureName(p) {
+  const raw = p.display_name || p.Nombre || p.Nombre_poder || p.nombre || p.id_territorio || p.id_poder || p.id_punto || 'Entidad sin denominación';
+  return DISPLAY_NAMES[norm(raw)] || raw;
+}
+function labelText(p) { return POWER_LABELS[p.layer_key] || featureName(p); }
 function featureId(p) { return p.entity_id || p.id_territorio || p.id_poder || p.id_punto || ''; }
-const territoryPalette = ['#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#a50f15','#67000d'];
+// Paleta de territorios: el rojo más intenso queda reservado para el Cabildo de Jujuy (foco del trabajo).
+const FOCUS_TERRITORY = { name: 'cabildo de jujuy', color: '#67000d' };
+const territoryPalette = ['#fee8de','#fdd5c3','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d'];
 const territoryColor = new Map();
+const isFocusTerritory = (p) => norm(featureName(p)) === FOCUS_TERRITORY.name;
 
-function pastelFor(id) {
-  if (!territoryColor.has(id)) territoryColor.set(id, territoryPalette[territoryColor.size % territoryPalette.length]);
+function territoryFill(p) {
+  const id = featureId(p);
+  if (!territoryColor.has(id)) {
+    const n = [...territoryColor.values()].filter(c => c !== FOCUS_TERRITORY.color).length;
+    territoryColor.set(id, isFocusTerritory(p) ? FOCUS_TERRITORY.color : territoryPalette[n % territoryPalette.length]);
+  }
   return territoryColor.get(id);
 }
 function styleFeature(feature) {
@@ -79,7 +104,7 @@ function styleFeature(feature) {
     color: selected ? '#a65f43' : (isTer ? '#2a0a08' : '#ffffff'),
     weight: selected ? 4 : (isTer ? 1.5 : 2),
     opacity: 1,
-    fillColor: isTer ? pastelFor(id) : LAYER_COLORS[key],
+    fillColor: isTer ? territoryFill(p) : LAYER_COLORS[key],
     fillOpacity: selected ? Math.min(1, slider * .8 + .15) : slider * .8
   };
 }
@@ -88,10 +113,43 @@ function restyle(layer, feature) {
   if (feature.properties.layer_key === 'puntos') layer.setIcon(pointIcon(feature, isSelected(feature)));
   else if (layer.setStyle) layer.setStyle(styleFeature(feature));
 }
+// ---- Rótulos de polígonos: se ubican en el punto más interior del polígono principal ----
+function polygonsOf(g) { return g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []; }
+function ringArea(r) { let s = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) s += r[j][0] * r[i][1] - r[i][0] * r[j][1]; return Math.abs(s / 2); }
+function inRing(x, y, r) { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [xi, yi] = r[i], [xj, yj] = r[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+function inPoly(x, y, p) { if (!inRing(x, y, p[0])) return false; for (let i = 1; i < p.length; i++) if (inRing(x, y, p[i])) return false; return true; }
+function sampleRing(r, max = 500) { const s = Math.max(1, Math.floor(r.length / max)); const o = []; for (let i = 0; i < r.length; i += s) o.push(r[i]); return o; }
+function distToRing(x, y, r) { let m = Infinity; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [ax, ay] = r[j], [bx, by] = r[i]; const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((x - ax) * dx + (y - ay) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); const px = ax + t * dx - x, py = ay + t * dy - y; m = Math.min(m, px * px + py * py); } return Math.sqrt(m); }
+function labelLatLng(geometry) {
+  const poly = polygonsOf(geometry).sort((a, b) => ringArea(b[0]) - ringArea(a[0]))[0];
+  if (!poly) return null;
+  const rings = poly.map(r => sampleRing(r));
+  const xs = poly[0].map(c => c[0]), ys = poly[0].map(c => c[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  let best = null, bestD = -1;
+  const scan = (ax, bx, ay, by, n) => { for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) { const x = ax + (bx - ax) * i / n, y = ay + (by - ay) * j / n; if (!inPoly(x, y, poly)) continue; let d = Infinity; for (const r of rings) d = Math.min(d, distToRing(x, y, r)); if (d > bestD) { bestD = d; best = [x, y]; } } };
+  scan(x0, x1, y0, y1, 24);
+  if (best) scan(best[0] - (x1 - x0) / 12, best[0] + (x1 - x0) / 12, best[1] - (y1 - y0) / 12, best[1] + (y1 - y0) / 12, 12);
+  return best ? L.latLng(best[1], best[0]) : L.latLng((y0 + y1) / 2, (x0 + x1) / 2);
+}
+function bindAreaLabel(feature, layer) {
+  const p = feature.properties;
+  const cls = `area-label area-label-${p.layer_key}${p.layer_key === 'territorio' && isFocusTerritory(p) ? ' area-label-focus' : ''}`;
+  layer.bindTooltip(esc(labelText(p)), { permanent: true, direction: 'center', className: cls, interactive: false, opacity: 1 });
+  const at = labelLatLng(feature.geometry);
+  if (at) layer.getCenter = () => at;   // el tooltip permanente se ancla en este punto
+}
+function updateLabelZoom() { $('map').classList.toggle('zoom-low', map.getZoom() < 6); }
+
 function bindFeature(feature, layer, type) {
   const p = feature.properties || {};
-  const label = p.layer_key === 'puntos' ? POINT_TYPES[pointCategory(p)].label : LAYER_LABEL[p.layer_key];
-  layer.bindPopup(`<div class="popup-type">${esc(label)}</div><div class="popup-title">${esc(featureName(p))}</div><div>${esc(featureId(p))}</div><button class="popup-open" data-feature-id="${esc(featureId(p))}" data-feature-type="${type}">VER FICHA →</button>`);
+  if (p.layer_key === 'puntos') {
+    // Puntos: al hacer clic solo se muestra el nombre (sin ficha).
+    layer.bindPopup(`<div class="popup-title popup-name-only">${esc(featureName(p))}</div>`, { closeButton: false, offset: [0, -2] });
+    return;
+  }
+  // Polígonos: rótulo permanente con el nombre y ficha al hacer clic.
+  bindAreaLabel(feature, layer);
   layer.on('click', () => selectFeature(feature, layer, type));
 }
 function selectFeature(feature, layer, type) {
@@ -104,7 +162,7 @@ function selectFeature(feature, layer, type) {
 function setLayerOpacity(layer, key) {
   if (!layer) return;
   if (key === 'puntos') {
-    const o = Math.max(.25, Number($(LAYER_UI.puntos.slider).value) / 100);
+    const o = Number($(LAYER_UI.puntos.slider).value) / 100;
     layer.eachLayer(m => { m.setIcon(pointIcon(m.feature, isSelected(m.feature))); m.setOpacity(o); });
   } else layer.setStyle(f => styleFeature(f));
 }
@@ -189,8 +247,8 @@ Object.entries(LAYER_UI).forEach(([key, ui]) => {
   $(ui.slider).addEventListener('input', e => { $(ui.output).value = `${e.target.value}%`; setLayerOpacity(layers[key], key); });
 });
 $('reset-map').addEventListener('click',()=>map.setView([-21.5,-65.2],5));
+map.on('zoomend', updateLabelZoom); updateLabelZoom();
 $('detail-close').addEventListener('click',closeDetail);
-$('map').addEventListener('click',e=>{const b=e.target.closest('.popup-open'); if(!b)return; const f=featureIndex.get(b.dataset.featureId); if(f) renderDetail(f,b.dataset.featureType);});
 $('menu-toggle').addEventListener('click',()=>$('main-nav')?.classList.toggle('open'));
 
 // Admin panel: CRUD de fichas, personas, acontecimientos, fuentes y relaciones.
@@ -206,7 +264,7 @@ $('login-form').addEventListener('submit',async e=>{e.preventDefault();if(!db)re
 $('logout-button').addEventListener('click',async()=>{if(db)await db.auth.signOut();authState(null);});
 document.querySelectorAll('.admin-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.admin-tab').forEach(x=>x.classList.toggle('active',x===b));activeAdminTab=b.dataset.tab;renderAdminTab(activeAdminTab);}));
 const adminDefinitions={
- fichas:{table:'entity_fiches',title:'Fichas históricas',fields:[['geo_id','ID geográfico (TER-0001 / POD-0001)','text'],['entity_type','Tipo (territorio o poder)','text'],['name','Nombre','text'],['period','Período','text'],['description','Descripción histórica','textarea'],['published','Publicar','checkbox']]},
+ fichas:{table:'entity_fiches',title:'Fichas históricas',fields:[['geo_id','ID geográfico (TER-0001 / POD-0001)','text'],['entity_type','Tipo de entidad','select:territorio,poder'],['name','Nombre','text'],['period','Período','text'],['description','Descripción histórica','textarea'],['published','Publicar','checkbox']]},
  personas:{table:'people',title:'Personas',fields:[['full_name','Nombre completo','text'],['biography','Biografía','textarea'],['notes','Notas','textarea'],['published','Publicar','checkbox']]},
  eventos:{table:'events',title:'Acontecimientos',fields:[['title','Título','text'],['event_date','Fecha / período','text'],['description','Descripción','textarea'],['published','Publicar','checkbox']]},
  cargos:{table:'offices',title:'Cargos e instituciones',fields:[['name','Denominación del cargo','text'],['institution','Institución','text'],['description','Descripción / contexto','textarea'],['published','Publicar','checkbox']]},
@@ -216,7 +274,7 @@ const adminDefinitions={
 async function renderAdminTab(tab){
   const def=adminDefinitions[tab]; const host=$('admin-panel');
   if(!db||!session){host.innerHTML='<p class="muted">Iniciá sesión para continuar.</p>';return;}
-  host.innerHTML=`<h3>${esc(def.title)}</h3><form class="admin-editor" id="record-form"><input type="hidden" name="record_id">${def.fields.map(([key,label,type])=>`<label>${esc(label)}${type==='textarea'?`<textarea name="${key}"></textarea>`:type==='checkbox'?`<input type="checkbox" name="${key}" ${key==='published'?'checked':''}>`:`<input type="${type}" name="${key}">`}</label>`).join('')}<div class="hero-actions"><button class="button primary" type="submit">Guardar registro</button><button class="subtle-button" id="cancel-edit" type="button">Limpiar formulario</button></div><p id="record-message" class="form-message" aria-live="polite"></p></form>${tab==='relaciones'?`<div class="admin-records"><h3>Vincular personas, acontecimientos o fuentes</h3><form id="link-form" class="admin-editor"><label>Entidad geográfica<input name="geo_id" placeholder="TER-0001 o POD-0001" required></label><label>Tipo de vínculo<select name="link_type"><option value="person">Persona</option><option value="event">Acontecimiento</option><option value="source">Fuente</option></select></label><label>ID del registro relacionado<input name="related_id" placeholder="UUID del registro" required></label><label>Tipo de relación / función<input name="relationship" placeholder="Ej.: autoridad, participación, referencia"></label><label>Fundamento documental<textarea name="evidence"></textarea></label><button class="button primary" type="submit">Crear vínculo</button><p id="link-message" class="form-message" aria-live="polite"></p></form><h3>Registrar cargo en la trayectoria de una persona</h3><form id="office-link-form" class="admin-editor"><label>ID de persona (UUID)<input name="person_id" required></label><label>ID de cargo (UUID)<input name="office_id" required></label><label>Institución / contexto<input name="institution_context"></label><label>Inicio (fecha o período)<input name="start_date"></label><label>Fin (fecha o período)<input name="end_date"></label><label>Fuente / respaldo documental<textarea name="source_reference"></textarea></label><button class="button primary" type="submit">Agregar a la trayectoria</button><p id="office-link-message" class="form-message" aria-live="polite"></p></form></div>`:''}<div class="admin-records" id="admin-records">Cargando registros…</div>`;
+  host.innerHTML=`<h3>${esc(def.title)}</h3><form class="admin-editor" id="record-form"><input type="hidden" name="record_id">${def.fields.map(([key,label,type])=>`<label>${esc(label)}${type==='textarea'?`<textarea name="${key}"></textarea>`:type.startsWith('select:')?`<select name="${key}">${type.slice(7).split(',').map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`:type==='checkbox'?`<input type="checkbox" name="${key}" ${key==='published'?'checked':''}>`:`<input type="${type}" name="${key}">`}</label>`).join('')}<div class="hero-actions"><button class="button primary" type="submit">Guardar registro</button><button class="subtle-button" id="cancel-edit" type="button">Limpiar formulario</button></div><p id="record-message" class="form-message" aria-live="polite"></p></form>${tab==='relaciones'?`<div class="admin-records"><h3>Vincular personas, acontecimientos o fuentes</h3><form id="link-form" class="admin-editor"><label>Entidad geográfica<input name="geo_id" placeholder="TER-0001 o POD-0001" required></label><label>Tipo de vínculo<select name="link_type"><option value="person">Persona</option><option value="event">Acontecimiento</option><option value="source">Fuente</option></select></label><label>ID del registro relacionado<input name="related_id" placeholder="UUID del registro" required></label><label>Tipo de relación / función<input name="relationship" placeholder="Ej.: autoridad, participación, referencia"></label><label>Fundamento documental<textarea name="evidence"></textarea></label><button class="button primary" type="submit">Crear vínculo</button><p id="link-message" class="form-message" aria-live="polite"></p></form><h3>Registrar cargo en la trayectoria de una persona</h3><form id="office-link-form" class="admin-editor"><label>ID de persona (UUID)<input name="person_id" required></label><label>ID de cargo (UUID)<input name="office_id" required></label><label>Institución / contexto<input name="institution_context"></label><label>Inicio (fecha o período)<input name="start_date"></label><label>Fin (fecha o período)<input name="end_date"></label><label>Fuente / respaldo documental<textarea name="source_reference"></textarea></label><button class="button primary" type="submit">Agregar a la trayectoria</button><p id="office-link-message" class="form-message" aria-live="polite"></p></form></div>`:''}<div class="admin-records" id="admin-records">Cargando registros…</div>`;
   $('record-form').addEventListener('submit',async e=>{
     e.preventDefault(); const form=new FormData(e.currentTarget); const row={};
     for(const [key,,type] of def.fields){const el=e.currentTarget.elements[key];row[key]=type==='checkbox'?el.checked:(form.get(key)||null);}
