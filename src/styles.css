@@ -118,8 +118,9 @@ a {
 }
 
 .hero h1 {
-  font:500 clamp(28px,3.3vw,42px)/1.15 var(--display);
-  letter-spacing:-.015em;
+  font:500 clamp(24px,2.8vw,36px)/1.2 var(--display);
+  letter-spacing:.02em;
+  text-transform:uppercase;
   margin:22px 0 22px
 }
 
@@ -128,8 +129,18 @@ a {
   font-weight:normal
 }
 
+/* Subtítulo de la portada: Capitalizado, más chico y sin negrita */
+.hero h1 em.title-sub {
+  display:block;
+  margin-top:14px;
+  font-size:clamp(19px,2vw,26px);
+  font-weight:500;
+  letter-spacing:0;
+  text-transform:none
+}
+
 .lead {
-  font:clamp(16px,1.2vw,17.5px)/1.7 var(--serif);
+  font:700 clamp(16px,1.2vw,17.5px)/1.7 var(--serif);
   color:#555950;
   max-width:620px
 }
