@@ -78,9 +78,21 @@
 <li><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span><span><a href="https://conicet-ar.academia.edu/RocioSoledadCampos" target="_blank" rel="noopener">Perfil de Academia.edu ↗</a></span></li>
 </ul></div></section>
 </main>
-<footer id="contacto"><div class="footer-brand"><img class="brand-logo" src="./src/logo-rsc-dark.png" alt="" width="65" height="64" decoding="async" loading="lazy"><div class="brand-text"><strong>Élites Locales y trayectorias políticas</strong><small>Atlas histórico digital · Siglo XVII</small></div></div><div class="footer-note">Proyecto de investigación histórica.<br>Contenido en desarrollo.</div><a href="mailto:rociocampos1292@gmail.com" class="footer-contact">Contacto <span>↗</span></a></footer>
+<footer id="contacto"><div class="footer-brand"><img class="brand-logo" src="./src/logo-rsc-dark.png" alt="" width="65" height="64" decoding="async" loading="lazy"><div class="brand-text"><strong>Élites Locales y trayectorias políticas</strong><small>Atlas histórico digital · Siglo XVII</small></div></div><div class="footer-note">Proyecto de investigación histórica.<br>Contenido en desarrollo.<br>Visitas: <span id="visitas">…</span></div><a href="mailto:rociocampos1292@gmail.com" class="footer-contact">Contacto <span>↗</span></a></footer>
 
 <div id="detail-panel" class="detail-panel" aria-hidden="true"><div class="detail-top"><span class="eyebrow" id="detail-type">FICHA HISTÓRICA</span><button id="detail-close" class="icon-button" aria-label="Cerrar ficha">×</button></div><div id="detail-content" class="detail-content"><p class="empty-state">Seleccioná una entidad del mapa para consultar su información.</p></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script type="module" src="./src/app.js"></script>
+
+<!-- GoatCounter: registra las visitas -->
+<script data-goatcounter="https://atlas-charcas.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
+<!-- Muestra el número de visitas en el pie de página -->
+<script>
+fetch('https://atlas-charcas.goatcounter.com/counter/TOTAL.json')
+  .then(function(r){return r.json()})
+  .then(function(d){document.getElementById('visitas').textContent=d.count})
+  .catch(function(){var v=document.getElementById('visitas');if(v&&v.parentNode){v.parentNode.removeChild(v.previousSibling);v.parentNode.removeChild(v)}});
+</script>
 </body></html>
