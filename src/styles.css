@@ -88,7 +88,7 @@ a {
   color:var(--rust)
 }
 
-.admin-link,.menu-toggle {
+.menu-toggle {
   border:0;
   background:none;
   font:600 11px var(--sans);
@@ -96,11 +96,6 @@ a {
   text-transform:uppercase;
   color:var(--blue);
   cursor:pointer
-}
-
-.admin-link span {
-  font-size:16px;
-  margin-left:4px
 }
 
 .menu-toggle {
@@ -403,7 +398,7 @@ a {
   margin-bottom:-9px
 }
 
-.map-sidebar select,.stack-form input,.admin-editor input,.admin-editor textarea,.admin-editor select {
+.map-sidebar select {
   width:100%;
   border:1px solid var(--line);
   background:#fffdf8;
@@ -414,8 +409,9 @@ a {
 }
 
 .swatch.territory,.legend-box.territory {
-  background:linear-gradient(90deg,#fff1e6,#f8b996,#e2724f,#b10f1e);
-  border:1.5px solid #2a0a08
+  background:linear-gradient(90deg,#4f9da6 0 20%,#d9a21b 20% 40%,#c45a86 40% 60%,#7b5ea7 60% 80%,#c8102e 80%);
+  border:1.5px solid #fff;
+  outline:1px solid #8a8a8a
 }
 
 .swatch.aud,.legend-box.aud {
@@ -430,58 +426,9 @@ a {
   outline:1px solid #8a8a8a
 }
 
-.swatch.points {
-  border-radius:50%;
-  background:#d4a017;
-  border:2px solid #fff;
-  outline:1px solid #8a8a8a
-}
-
-.legend-dot {
-  width:13px;
-  height:13px;
-  border-radius:50%;
-  border:2px solid #fff;
-  outline:1px solid #8a8a8a;
-  display:inline-block
-}
-
-.legend-dot.capital {
-  background:#d4a017
-}
-
-.legend-dot.ciudad {
-  background:#1f2a30
-}
-
-.legend-dot.mineria {
-  background:#7b4fa3
-}
-
 .pt-marker {
   background:none;
   border:0
-}
-
-.pt-badge {
-  width:15px;
-  height:15px;
-  border-radius:50%;
-  border:1.5px solid #fff;
-  display:grid;
-  place-items:center;
-  box-shadow:0 1px 3px #0008;
-  transition:transform .15s
-}
-
-.pt-badge svg {
-  width:9px;
-  height:9px
-}
-
-.pt-badge.selected {
-  transform:scale(1.5);
-  box-shadow:0 0 0 2px #a65f43,0 1px 3px #0008
 }
 
 .pt-label {
@@ -903,65 +850,9 @@ footer {
   color:#555950
 }
 
-.detail-list {
-  list-style:none;
-  padding:0;
-  margin:0
-}
-
-.detail-list li {
-  padding:9px 0;
-  border-bottom:1px solid #e8dfd1;
-  font:12px/1.5 var(--serif)
-}
-
-.detail-list a {
-  color:var(--blue);
-  text-decoration:underline
-}
-
 .empty-state {
   color:var(--muted);
   font:italic 16px var(--serif)
-}
-
-.modal {
-  position:fixed;
-  inset:0;
-  z-index:2000;
-  display:grid;
-  place-items:center;
-  padding:20px
-}
-
-.modal-backdrop {
-  position:absolute;
-  inset:0;
-  background:#1d2828a8
-}
-
-.modal-card {
-  position:relative;
-  width:min(760px,100%);
-  max-height:90vh;
-  overflow:auto;
-  background:var(--paper2);
-  padding:28px;
-  box-shadow:var(--shadow)
-}
-
-.modal-head {
-  display:flex;
-  justify-content:space-between;
-  align-items:start;
-  border-bottom:1px solid var(--line);
-  padding-bottom:15px;
-  margin-bottom:18px
-}
-
-.modal-head h2 {
-  font:normal 34px var(--serif);
-  margin:5px 0
 }
 
 .muted {
@@ -969,95 +860,10 @@ footer {
   color:var(--muted)
 }
 
-.stack-form,.admin-editor {
-  display:grid;
-  gap:13px
-}
-
-.stack-form label,.admin-editor label {
-  display:grid;
-  gap:6px;
-  font:600 10px var(--sans);
-  color:#555950
-}
-
-.stack-form .button {
-  width:100%;
-  margin-top:4px
-}
-
 .form-message {
   font-size:11px;
   color:var(--rust);
   min-height:16px
-}
-
-.admin-toolbar {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:16px
-}
-
-.admin-tabs {
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-  border-bottom:1px solid var(--line);
-  margin-bottom:18px
-}
-
-.admin-tab {
-  border:0;
-  background:none;
-  padding:9px 11px;
-  font:700 9px var(--sans);
-  letter-spacing:.06em;
-  color:var(--muted);
-  cursor:pointer
-}
-
-.admin-tab.active {
-  color:var(--rust);
-  border-bottom:2px solid var(--rust)
-}
-
-.admin-editor textarea {
-  min-height:95px;
-  resize:vertical
-}
-
-.admin-editor .button {
-  justify-self:start
-}
-
-.admin-records {
-  margin-top:22px;
-  border-top:1px solid var(--line)
-}
-
-.admin-record {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:11px 0;
-  border-bottom:1px solid #e8dfd1;
-  font-size:11px
-}
-
-.admin-record small {
-  display:block;
-  color:var(--muted);
-  font-size:9px
-}
-
-.admin-record button {
-  border:1px solid var(--line);
-  background:none;
-  padding:5px 8px;
-  font-size:9px;
-  cursor:pointer
 }
 
 .leaflet-popup-content-wrapper {
@@ -1126,10 +932,6 @@ footer {
   }
   .menu-toggle {
     display:block
-  }
-  .admin-link {
-    margin-left:auto;
-    margin-right:18px
   }
   .hero {
     grid-template-columns:1fr;
@@ -1202,16 +1004,6 @@ footer {
   .detail-panel {
     top:66px
   }
-  .modal-card {
-    padding:20px
-  }
-  .admin-tabs {
-    overflow:auto;
-    flex-wrap:nowrap
-  }
-  .admin-tab {
-    white-space:nowrap
-  }
 }
 
 @media(prefers-reduced-motion:reduce) {
@@ -1235,22 +1027,12 @@ footer {
   text-shadow: 0 0 3px #000, 0 0 3px #000, 0 1px 2px #000;
 }
 .leaflet-tooltip.area-label::before { display: none; }
-.area-label-audiencia,
-.area-label-gobernacion {
-  font: italic 700 13px/1.1 var(--serif);
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-.area-label-territorio { font: 700 11px/1.1 var(--sans); letter-spacing: .05em; }
-.area-label-focus { font-size: 13px; }
 /* En zoom alejado solo se muestra el rótulo del territorio foco, para evitar superposiciones. */
 #map.zoom-low .area-label-territorio:not(.area-label-focus):not(.is-hover) { visibility: hidden; }
 
 /* ---- Popup de puntos: solo el nombre ---- */
 .popup-name-only { margin: 0; }
 .leaflet-popup-content:has(.popup-name-only) { margin: 9px 14px; }
-
-/* ---- Botón de administración en el pie ---- */
 
 /* ---- Cuerpo de ficha: una sola tipografía para todas las fichas ---- */
 .detail-content .ficha-body,
@@ -1303,6 +1085,15 @@ footer {
   .footer-brand .brand-logo { height: 54px; }
 }
 
+/* ---- Jerarquía de rótulos, de mayor a menor: Real Audiencia > Gobernación > Cabildo de Jujuy > territorios ---- */
+/* Para ajustar un tamaño basta cambiar su valor acá. */
+:root {
+  --lbl-audiencia: 11px;
+  --lbl-gobernacion: 10px;
+  --lbl-cabildo: 9px;
+  --lbl-territorio: 9px;
+}
+
 /* ---- Rótulos rediseñados (más legibles sobre la imagen satelital) ---- */
 .leaflet-tooltip.area-label-audiencia,
 .leaflet-tooltip.area-label-gobernacion {
@@ -1310,16 +1101,16 @@ footer {
   border: 1.5px solid;
   border-radius: 14px;
   padding: 5px 13px 6px;
-  font: 600 11px/1.35 'Montserrat', var(--sans);
+  font: 600 var(--lbl-audiencia)/1.35 'Montserrat', var(--sans);
   letter-spacing: .1em;
   text-transform: uppercase;
   text-shadow: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
 }
 .leaflet-tooltip.area-label-audiencia { border-color: #7fb8f0; }
-.leaflet-tooltip.area-label-gobernacion { border-color: #6fd18d; }
+.leaflet-tooltip.area-label-gobernacion { border-color: #6fd18d; font-size: var(--lbl-gobernacion); }
 .leaflet-tooltip.area-label-territorio {
-  font: 600 10.5px/1.2 'Montserrat', var(--sans);
+  font: 600 var(--lbl-territorio)/1.2 'Montserrat', var(--sans);
   letter-spacing: .03em;
   text-shadow: 0 0 2px #000, 0 0 4px #000, 0 1px 3px #000;
 }
@@ -1328,9 +1119,9 @@ footer {
   background: #fff;
   color: #8c0b17;
   border: 2px solid #8c0b17;
-  border-radius: 12px;
-  padding: 3px 10px;
-  font: 700 12px/1.2 'Montserrat', var(--sans);
+  border-radius: 10px;
+  padding: 3px 8px;
+  font: 700 var(--lbl-cabildo)/1.2 'Montserrat', var(--sans);
   letter-spacing: .02em;
   text-shadow: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
@@ -1358,5 +1149,21 @@ path.territory-focus { filter: drop-shadow(0 0 5px rgba(255, 255, 255, .85)) dro
 
 /* ---- Ajustes con el mapa gris claro ---- */
 #map.base-light .pt-label { color: #1d2528; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 1px 2px #fff; }
-#map.base-light .leaflet-tooltip.area-label-territorio:not(.area-label-focus):not(.is-hover) { color: #4a1c14; text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 1px 3px #fff; }
 #map.base-light path.territory-focus { filter: drop-shadow(0 0 3px rgba(120, 10, 20, .6)); }
+
+/* ---- Íconos de puntos (mapa y leyenda): una silueta distinta por tipo ---- */
+.pt-icon {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .65));
+  transform-origin: center;
+  transition: transform .15s;
+}
+.pt-icon.selected { transform: scale(1.35); }
+#map.zoom-low .pt-icon { transform: scale(.8); }
+.legend-icon,
+.swatch-icon { display: block; flex: 0 0 auto; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .5)); }
+.swatch-icon { margin-top: 1px; }
+/* Mismo ancho de columna que los íconos de 16 px, para que la leyenda quede alineada */
+.legend .legend-box,
+.legend .legend-outline { margin: 0 2.5px; }
