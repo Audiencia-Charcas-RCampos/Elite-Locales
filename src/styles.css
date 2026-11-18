@@ -414,7 +414,7 @@ a {
 }
 
 .swatch.territory,.legend-box.territory {
-  background:linear-gradient(90deg,#fff0e8,#fc9272,#f4694c,#b10f1e);
+  background:linear-gradient(90deg,#fff1e6,#f8b996,#e2724f,#b10f1e);
   border:1.5px solid #2a0a08
 }
 
@@ -1244,7 +1244,7 @@ footer {
 .area-label-territorio { font: 700 11px/1.1 var(--sans); letter-spacing: .05em; }
 .area-label-focus { font-size: 13px; }
 /* En zoom alejado solo se muestra el rótulo del territorio foco, para evitar superposiciones. */
-#map.zoom-low .area-label-territorio:not(.area-label-focus) { display: none; }
+#map.zoom-low .area-label-territorio:not(.area-label-focus):not(.is-hover) { visibility: hidden; }
 
 /* ---- Popup de puntos: solo el nombre ---- */
 .popup-name-only { margin: 0; }
@@ -1336,3 +1336,27 @@ footer {
   box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
 }
 path.territory-focus { filter: drop-shadow(0 0 5px rgba(255, 255, 255, .85)) drop-shadow(0 0 2px #fff); }
+
+/* ---- Selector de mapa de base ---- */
+.base-switch { display: flex; border: 1px solid var(--line); }
+.base-switch button { flex: 1; border: 0; background: transparent; padding: 8px 6px; font: 700 10px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--blue); cursor: pointer; }
+.base-switch button + button { border-left: 1px solid var(--line); }
+.base-switch button.active { background: var(--blue); color: #fff; }
+.base-switch button:not(.active):hover { background: #f1e8d9; }
+
+/* ---- Resaltado de territorios al pasar el cursor ---- */
+.leaflet-tooltip.area-label-territorio.is-hover {
+  background: #fff;
+  color: #3b1710;
+  text-shadow: none;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  z-index: 800;
+}
+
+/* ---- Ajustes con el mapa gris claro ---- */
+#map.base-light .pt-label { color: #1d2528; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 1px 2px #fff; }
+#map.base-light .leaflet-tooltip.area-label-territorio:not(.area-label-focus):not(.is-hover) { color: #4a1c14; text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 1px 3px #fff; }
+#map.base-light path.territory-focus { filter: drop-shadow(0 0 3px rgba(120, 10, 20, .6)); }

@@ -9,7 +9,15 @@ const hasSupabase = Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey && wind
 const db = hasSupabase ? window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey) : null;
 const map = L.map('map', { zoomControl: false, scrollWheelZoom: true }).setView([-21.5, -65.2], 5);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19 }).addTo(map);
+// Mapas de base: imagen satelital y mapa gris claro (los colores de las capas se distinguen mejor).
+const BASES = {
+  sat: { hint: 'Esri World Imagery (imágenes satelitales).',
+    layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19 }) },
+  light: { hint: 'Esri Light Gray Canvas (mapa base gris claro).',
+    layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ', maxNativeZoom: 16, maxZoom: 19 }) }
+};
+let currentBase = 'sat';
+BASES.sat.layer.addTo(map);
 let selectedLayer = null;
 let selectedFeature = null;
 const layers = {};   // clave de capa -> L.geoJSON
@@ -24,8 +32,10 @@ const LAYER_UI = {
 // Colores de las capas de polígonos y orden de apilado (de abajo hacia arriba: Audiencia, Gobernación, territorios).
 const LAYER_COLORS = { audiencia: '#2f6fb0', gobernacion: '#3f9a4a' };
 const LAYER_PANE = { audiencia: 'pane-audiencia', gobernacion: 'pane-gobernacion', territorio: 'pane-territorio' };
-const LAYER_BORDER = { audiencia: '#7fb8f0', gobernacion: '#6fd18d' };
+const POWER_BORDER = { sat: { audiencia: '#8cc3f5', gobernacion: '#6fd18d' }, light: { audiencia: '#1f5fa8', gobernacion: '#2e8b45' } };
 Object.values(LAYER_PANE).forEach((name, i) => { map.createPane(name).style.zIndex = 410 + i * 5; });
+// El contorno de la Real Audiencia se dibuja por encima de los territorios para que nunca se pierda.
+map.createPane('pane-audiencia-borde').style.zIndex = 425;
 // Capa de puntos: el ícono depende del campo "tipoid" de cada punto.
 const POINT_TYPES = {
   capital: { label: 'Capital',           color: '#d4a017', glyph: '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/>' },
@@ -85,7 +95,9 @@ function labelHtml(p) { return POWER_LABELS[p.layer_key] ? POWER_LABELS[p.layer_
 function featureId(p) { return p.entity_id || p.id_territorio || p.id_poder || p.id_punto || ''; }
 // Paleta de territorios: el rojo más intenso queda reservado para el Cabildo de Jujuy (foco del trabajo).
 const FOCUS_TERRITORY = { name: 'cabildo de jujuy', color: '#b10f1e' };
-const territoryPalette = ['#fff0e8','#fee0d2','#fcbba1','#fca585','#fc9272','#fb8060','#f4694c'];
+const territoryPalette = ['#fff1e6','#fde0cb','#fbcdb0','#f8b996','#f4a27c','#ee8b65','#e2724f'];
+// Colores fijos por territorio: los vecinos reciben tonos bien distintos entre sí; Cabildo de Jujuy es el rojo más intenso.
+const TERRITORY_COLORS = {"TER-0001": "#fde0cb", "TER-0003": "#e2724f", "TER-0004": "#ee8b65", "TER-0005": "#fbcdb0", "TER-0006": "#fff1e6", "TER-0007": "#f8b996", "TER-0008": "#f4a27c"};
 const territoryColor = new Map();
 const isFocusTerritory = (p) => norm(featureName(p)) === FOCUS_TERRITORY.name;
 
@@ -93,7 +105,7 @@ function territoryFill(p) {
   const id = featureId(p);
   if (!territoryColor.has(id)) {
     const n = [...territoryColor.values()].filter(c => c !== FOCUS_TERRITORY.color).length;
-    territoryColor.set(id, isFocusTerritory(p) ? FOCUS_TERRITORY.color : territoryPalette[n % territoryPalette.length]);
+    territoryColor.set(id, isFocusTerritory(p) ? FOCUS_TERRITORY.color : (TERRITORY_COLORS[id] || territoryPalette[n % territoryPalette.length]));
   }
   return territoryColor.get(id);
 }
@@ -106,7 +118,9 @@ function styleFeature(feature) {
     const focus = isFocusTerritory(p);
     return {
       pane: LAYER_PANE[key],
-      color: focus || selected ? '#ffffff' : '#fff4ec',
+      color: currentBase === 'light'
+        ? (selected ? '#3b0a10' : focus ? '#6e0a14' : '#b9654f')
+        : (selected || focus ? '#ffffff' : '#fff4ec'),
       weight: selected ? 4 : (focus ? 3.2 : 1.4),
       opacity: 1,
       fillColor: territoryFill(p),
@@ -117,17 +131,33 @@ function styleFeature(feature) {
   // Espacios de poder: relleno suave y borde bien marcado, para no tapar los territorios.
   return {
     pane: LAYER_PANE[key],
-    color: selected ? '#ffffff' : LAYER_BORDER[key],
+    color: selected ? (currentBase === 'light' ? '#3b0a10' : '#ffffff') : POWER_BORDER[currentBase][key],
     weight: selected ? 4 : 3,
     opacity: 1,
     fillColor: LAYER_COLORS[key],
     fillOpacity: slider * (selected ? .5 : .28)
   };
 }
+let audOutline = null;
+const audSelected = () => Boolean(selectedFeature) && selectedFeature.properties.layer_key === 'audiencia';
+const casingStyle = () => ({ fill: false, interactive: false, lineJoin: 'round', weight: 7.5, opacity: 1, color: currentBase === 'light' ? 'rgba(255,255,255,.92)' : 'rgba(6,14,30,.6)' });
+const outlineStyle = () => ({ fill: false, interactive: false, lineJoin: 'round', weight: audSelected() ? 4.5 : 3.6, opacity: 1, color: audSelected() ? (currentBase === 'light' ? '#3b0a10' : '#ffffff') : POWER_BORDER[currentBase].audiencia });
+function buildAudOutline(features) {
+  const mk = (style) => L.geoJSON({ type: 'FeatureCollection', features }, { pane: 'pane-audiencia-borde', interactive: false, style: () => style });
+  audOutline = { casing: mk(casingStyle()), line: mk(outlineStyle()) };
+}
+function updateAudOutline() {
+  if (!audOutline) return;
+  const on = $(LAYER_UI.audiencia.toggle).checked;
+  [audOutline.casing, audOutline.line].forEach(l => { if (on && !map.hasLayer(l)) l.addTo(map); if (!on && map.hasLayer(l)) map.removeLayer(l); });
+  audOutline.casing.setStyle(casingStyle());
+  audOutline.line.setStyle(outlineStyle());
+}
 function restyle(layer, feature) {
   if (!layer || !feature) return;
   if (feature.properties.layer_key === 'puntos') layer.setIcon(pointIcon(feature, isSelected(feature)));
   else if (layer.setStyle) layer.setStyle(styleFeature(feature));
+  if (feature.properties.layer_key === 'audiencia') updateAudOutline();
 }
 // ---- Rótulos de polígonos: se ubican en el punto más interior del polígono principal ----
 function polygonsOf(g) { return g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []; }
@@ -167,6 +197,20 @@ function bindFeature(feature, layer, type) {
   // Polígonos: rótulo permanente con el nombre y ficha al hacer clic.
   bindAreaLabel(feature, layer);
   layer.on('click', () => selectFeature(feature, layer, type));
+  if (p.layer_key === 'territorio') {
+    // Al pasar el cursor: el territorio se ilumina y su nombre se muestra siempre.
+    const tip = () => layer.getTooltip() && layer.getTooltip().getElement();
+    layer.on('mouseover', () => {
+      const s = styleFeature(feature);
+      layer.setStyle({ weight: Math.max(s.weight, 3), fillOpacity: Math.min(1, s.fillOpacity + .18), color: currentBase === 'light' ? '#3b0a10' : '#ffffff' });
+      layer.bringToFront();
+      const el = tip(); if (el) el.classList.add('is-hover');
+    });
+    layer.on('mouseout', () => {
+      layer.setStyle(styleFeature(feature));
+      const el = tip(); if (el) el.classList.remove('is-hover');
+    });
+  }
 }
 function selectFeature(feature, layer, type) {
   const previous = selectedLayer, previousFeature = selectedFeature;
@@ -246,6 +290,7 @@ function buildLayer(features, layerKey, type) {
   if (layerKey === 'puntos') options.pointToLayer = (f, latlng) => L.marker(latlng, { icon: pointIcon(f), keyboard: true, title: featureName(f.properties) });
   const layer = L.geoJSON({ type: 'FeatureCollection', features }, options).addTo(map);
   layers[layerKey] = layer; layerCounts[layerKey] = features.length;
+  if (layerKey === 'audiencia') buildAudOutline(features);
   return layer;
 }
 function updateLayerCount() {
@@ -261,6 +306,7 @@ function refreshLayers() {
     if (!on && map.hasLayer(layer)) map.removeLayer(layer);
     setLayerOpacity(layer, key);
   });
+  updateAudOutline();
 }
 async function initMap() {
   try {
@@ -283,6 +329,20 @@ Object.entries(LAYER_UI).forEach(([key, ui]) => {
   $(ui.toggle).addEventListener('change', refreshLayers);
   $(ui.slider).addEventListener('input', e => { $(ui.output).value = `${e.target.value}%`; setLayerOpacity(layers[key], key); });
 });
+function setBase(key) {
+  if (key === currentBase || !BASES[key]) return;
+  map.removeLayer(BASES[currentBase].layer);
+  currentBase = key;
+  BASES[key].layer.addTo(map);
+  BASES[key].layer.bringToBack();
+  $('map').classList.toggle('base-light', key === 'light');
+  $('base-sat').classList.toggle('active', key === 'sat'); $('base-sat').setAttribute('aria-pressed', key === 'sat');
+  $('base-light').classList.toggle('active', key === 'light'); $('base-light').setAttribute('aria-pressed', key === 'light');
+  $('base-hint').textContent = BASES[key].hint;
+  refreshLayers();
+}
+$('base-sat').addEventListener('click', () => setBase('sat'));
+$('base-light').addEventListener('click', () => setBase('light'));
 $('reset-map').addEventListener('click',()=>map.setView([-21.5,-65.2],5));
 map.on('zoomend', updateLabelZoom); updateLabelZoom();
 $('detail-close').addEventListener('click',closeDetail);
