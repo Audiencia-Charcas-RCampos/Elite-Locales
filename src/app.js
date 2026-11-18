@@ -3,8 +3,11 @@ let FICHAS = {};
 try { ({ FICHAS } = await import('./fichas.js')); } catch (e) { console.warn('fichas.js no disponible; se continúa sin fichas locales.', e); }
 
 const $ = (id) => document.getElementById(id);
-const map = L.map('map', { zoomControl: false, scrollWheelZoom: true }).setView([-21.5, -65.2], 5);
+const map = L.map('map', { zoomControl: false, scrollWheelZoom: false }).setView([-21.5, -65.2], 5);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
+// La rueda del mouse hace zoom solo después de hacer clic en el mapa; así no atrapa el scroll de la página.
+map.on('click focus', () => map.scrollWheelZoom.enable());
+map.on('mouseout blur', () => map.scrollWheelZoom.disable());
 // Mapas de base: imagen satelital y mapa gris claro (los colores de las capas se distinguen mejor).
 const BASES = {
   sat: { hint: 'Esri World Imagery (imágenes satelitales).',
@@ -246,8 +249,19 @@ function setLayerOpacity(layer, key) {
     layer.eachLayer(m => { m.setIcon(pointIcon(m.feature, isSelected(m.feature))); m.setOpacity(o); });
   } else layer.setStyle(f => styleFeature(f));
 }
-function openDetail() { $('detail-panel').classList.add('open'); $('detail-panel').setAttribute('aria-hidden','false'); }
-function closeDetail() { $('detail-panel').classList.remove('open'); $('detail-panel').setAttribute('aria-hidden','true'); }
+let lastFocus = null;
+function openDetail() {
+  const panel = $('detail-panel');
+  if (!panel.classList.contains('open')) lastFocus = document.activeElement;
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+  $('detail-close').focus({ preventScroll: true });
+}
+function closeDetail() {
+  const panel = $('detail-panel');
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
+  if (lastFocus && lastFocus !== document.body && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+  lastFocus = null;
+}
 
 function fichaHtml(text) {
   // Todas las fichas se muestran con el mismo formato: un párrafo por apartado ("**Título:** texto").
@@ -273,7 +287,7 @@ function renderDetail(feature, type) {
   const body = local
     ? `<div class="ficha-body">${fichaHtml(local.description)}</div>`
     : '<p>La ficha de esta entidad está en preparación.</p>';
-  $('detail-content').innerHTML = `<div class="entity-id">${esc(id)}</div><h3>${esc(local?.name || featureName(p))}</h3><div class="detail-period">${esc(local?.period || 'Espacio histórico de Charcas · Siglo XVII')}</div><h4>Descripción histórica</h4>${body}`;
+  $('detail-content').innerHTML = `<h3>${esc(local?.name || featureName(p))}</h3><div class="detail-period">${esc(local?.period || 'Espacio histórico de Charcas · Siglo XVII')}</div><h4>Descripción histórica</h4>${body}`;
   openDetail();
 }
 
@@ -298,6 +312,8 @@ function updateLayerCount() {
 }
 function refreshLayers() {
   updateLayerCount();
+  const keyWrap = $('territory-key-wrap');
+  if (keyWrap) keyWrap.classList.toggle('hidden', !$(LAYER_UI.territorio.toggle).checked);
   Object.entries(layers).forEach(([key, layer]) => {
     const on = $(LAYER_UI[key].toggle).checked;
     if (on && !map.hasLayer(layer)) layer.addTo(map);
@@ -305,6 +321,44 @@ function refreshLayers() {
     setLayerOpacity(layer, key);
   });
   updateAudOutline();
+}
+// Clave de colores: cada territorio con su color (el degradé anterior no podía representarlos a todos).
+function buildTerritoryKey() {
+  const box = $('territory-key');
+  if (!box || !layers.territorio) return;
+  const items = [];
+  layers.territorio.eachLayer(l => { const p = l.feature.properties; items.push([featureName(p), territoryFill(p)]); });
+  items.sort((a, b) => a[0].localeCompare(b[0], 'es'));
+  box.innerHTML = items.map(([n, c]) => `<div><i class="legend-box" style="background:${c}"></i> ${esc(n)}</div>`).join('');
+}
+// Lista de fichas: acceso por teclado y por toque a todas las entidades (los polígonos del mapa no son enfocables).
+function buildFichaList() {
+  const box = $('ficha-list');
+  if (!box) return;
+  const rows = [];
+  [['audiencia', 'poder'], ['gobernacion', 'poder'], ['territorio', 'territorio']].forEach(([key, type]) => {
+    if (!layers[key]) return;
+    const part = [];
+    layers[key].eachLayer(l => {
+      const p = l.feature.properties;
+      const name = POWER_LABELS[key] ? POWER_LABELS[key].join(' ') : featureName(p);
+      const color = key === 'territorio' ? territoryFill(p) : LAYER_COLORS[key];
+      part.push({ name, color, feature: l.feature, layer: l, type });
+    });
+    part.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    rows.push(...part);
+  });
+  box.innerHTML = '';
+  rows.forEach(r => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ficha-item';
+    b.innerHTML = `<i class="legend-box" style="background:${r.color}"></i><span>${esc(r.name)}</span>`;
+    b.addEventListener('click', () => {
+      selectFeature(r.feature, r.layer, r.type);
+      try { map.fitBounds(r.layer.getBounds(), { padding: [30, 30], maxZoom: 8 }); } catch (e) { /* sin límites */ }
+    });
+    box.appendChild(b);
+  });
 }
 async function initMap() {
   try {
@@ -318,6 +372,8 @@ async function initMap() {
     buildLayer(go.features, 'gobernacion', 'poder');
     // La capa de puntos es opcional: si el archivo todavía no existe, el resto del mapa funciona igual.
     try { const pt = await fetchGeoJSON('./public/data/puntos.geojson'); buildLayer(pt.features, 'puntos', 'punto'); } catch (e) { console.warn(e); layerCounts.puntos = 0; }
+    buildTerritoryKey();
+    buildFichaList();
     refreshLayers();
     $('map-status').textContent = `${layerCounts.territorio} territorios · ${layerCounts.gobernacion + layerCounts.audiencia} espacios de poder · ${layerCounts.puntos || 0} puntos`;
   } catch (e) { console.error(e); $('map-status').textContent = 'No se pudieron cargar los datos. Revisá la carpeta public/data.'; }
@@ -357,5 +413,17 @@ nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu
 document.addEventListener('click', e => { if (!nav.contains(e.target) && !menuToggle.contains(e.target)) setMenu(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 window.matchMedia('(min-width: 701px)').addEventListener('change', e => { if (e.matches) setMenu(false); });
+
+// Sección activa en el menú mientras se hace scroll.
+const navLinks = [...nav.querySelectorAll('a')];
+const spy = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    navLinks.forEach(a => a.hash === '#' + e.target.id ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current'));
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+['proyecto', ...navLinks.map(a => a.hash.slice(1))].forEach(id => { const s = $(id); if (s) spy.observe(s); });
+// Escape cierra la ficha.
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('detail-panel').classList.contains('open')) closeDetail(); });
 
 initMap();
